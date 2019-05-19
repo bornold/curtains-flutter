@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 
 enum Day {
   mon,
@@ -18,10 +19,11 @@ String capitalize(String s)
 }
 
 class CronJob {
-  String get raw => "${time.minute} ${time.hour} * * ${_daysToCronDays(Set.from(days.isEmpty ? Day.values : days))} $command";
+  String get raw => "${time.minute} ${time.hour} * * ${_daysToCronDays(Set.from(days.isEmpty ? Day.values : days))} $command".trim();
   String command;
   TimeOfDay time;
   Set<Day> days;
+  String uuid = Uuid().v1();
   
   CronJob({this.command = '', @required this.time, @required this.days}) 
   : assert(time.hour < 24),
@@ -48,7 +50,7 @@ class CronJob {
   }
     
   @override
-  String toString() => raw.trim();
+  String toString({bool appendUUID = false}) => appendUUID ? '$raw $uuid' : raw;
 
   String _daysToCronDays(Set<Day> days) => days.isEmpty ? '' : days.map((day) => _dayToString(day)).join(',');
   String _dayToString(Day day) {

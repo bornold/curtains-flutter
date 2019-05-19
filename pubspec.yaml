@@ -10,7 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   ssh: ^0.0.3
-  provider: ^2.0.0+1
+  rxdart: ^0.22.0
 
 dev_dependencies:
   flutter_test:
