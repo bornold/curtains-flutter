@@ -19,7 +19,7 @@ String capitalize(String s)
 }
 
 class CronJob {
-  String get raw => "${time.minute} ${time.hour} * * ${_daysToCronDays(Set.from(days.isEmpty ? Day.values : days))} $command".trim();
+  String get raw => "${time.minute} ${time.hour} * * ${_daysToCronDays(Set.from(days.isEmpty ? Day.values : days))} $command #$uuid".trim();
   String command;
   TimeOfDay time;
   Set<Day> days;
@@ -46,11 +46,12 @@ class CronJob {
       .split(',')
       .map(_parseDay)
       .toSet();
+    this.uuid = splitted.removeLast().split('#').last;
     this.command = splitted.join(' ');
   }
     
   @override
-  String toString({bool appendUUID = false}) => appendUUID ? '$raw $uuid' : raw;
+  String toString() => raw;
 
   String _daysToCronDays(Set<Day> days) => days.isEmpty ? '' : days.map((day) => _dayToString(day)).join(',');
   String _dayToString(Day day) {

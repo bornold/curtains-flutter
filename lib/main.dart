@@ -1,19 +1,30 @@
 import 'dart:collection';
 
 import 'package:curtains/datasource/client_bloc.dart';
+import 'package:curtains/views/connection.dart';
 import 'package:flutter/material.dart';
 import 'package:curtains/models/cronjob.dart';
 import 'package:curtains/views/alarmItem.dart';
 
 void main() => runApp(MyApp());
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   
   @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  final _client = MockedClientBloc();
+  @override
+  void dispose() {
+    _client.disconnect();
+    _client.dispose();
+    super.dispose();
+  }
+  @override
   Widget build(BuildContext context) {
-    return ClientProvider(
-      client: ClientBloc(),
-      child: 
+    return 
         MaterialApp(
         title: 'curtains',
         theme: ThemeData.dark().copyWith(
@@ -36,21 +47,42 @@ class MyApp extends StatelessWidget {
             minWidth: 36, 
             padding: EdgeInsets.zero,)
         ),      
-        home: MyHomePage(title: 'curtains'),
+        home: ClientProvider(
+          client: _client,
+          child:  MainPage(),
       ),
     );
   }
 }
 
-class MyHomePage extends StatelessWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-  final String title;
+class MainPage extends StatelessWidget {
+  final String title = 'curtains';
+  Widget build(BuildContext context) {
+    final client = ClientProvider.of(context).client;
+    return StreamBuilder<SshState>(
+      stream: client.connection,
+      initialData: SshState.connecting,
+      builder: (context, snapshot) {
+        switch (snapshot.data) {
+          case SshState.connected:
+            return AlarmPage();
+          default:
+            return ConnectionInfo();
+        }
+      }
+    );
+  }
+}
+
+class AlarmPage extends StatelessWidget {
+  final String title = 'curtains';
   Widget build(BuildContext context) {
   final client = ClientProvider.of(context).client;
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-            icon: Icon(Icons.phonelink_off), onPressed: () {},
+            icon: Icon(Icons.phonelink_off), 
+            onPressed: client.disconnect,
             color: Theme.of(context).accentColor,
           ),
           title: Text(title)
@@ -69,7 +101,7 @@ class MyHomePage extends StatelessWidget {
             : Center(child: CircularProgressIndicator())
         )
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: AddAlarmButton(),
     );
   }
@@ -79,8 +111,7 @@ class AddAlarmButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final client = ClientProvider.of(context).client;
-    return Padding( padding: const EdgeInsets.all(18),
-          child:FloatingActionButton(
+    return FloatingActionButton(
             onPressed: () async { 
               TimeOfDay selectedTime = await showTimePicker(
                 initialTime: TimeOfDay.now(),
@@ -91,12 +122,12 @@ class AddAlarmButton extends StatelessWidget {
                       child: child,)
               );
               if (selectedTime != null) {
-                  client.addition.add(CronJob(command: '', time: selectedTime, days: Day.values.toSet()));  
+                  client.alarmSink.add(CronJob(command: '', time: selectedTime, days: Day.values.toSet()));  
               }
             },
           tooltip: 'Add alarm',
           child: Icon(Icons.alarm_add),
-        ),
+        
       );
   }
 }

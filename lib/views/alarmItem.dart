@@ -22,8 +22,7 @@ class AlarmItem extends StatelessWidget {
         key: Key(alarm.uuid),
         confirmDismiss: confirmDismissCallback(context),
         onDismissed: 
-          (dircetion) => 
-              client.subraction.add(alarm),
+          (dircetion) => client.alarmSink.add(alarm),
         child: Card(
           child: ExpansionTile(
             title: Column(
@@ -42,7 +41,7 @@ class AlarmItem extends StatelessWidget {
                               Theme(data: Theme.of(context), child: child,)
                         );
                       if (selectedTime != null) {
-                        client.updateItem(alarm, CronJob(command: 'command', time: selectedTime, days: alarm.days.toSet()));
+                        client.updateItem(alarm, CronJob(command: alarm.command, time: selectedTime, days: alarm.days.toSet()));
                       }
                     },),
                 ), 
@@ -54,11 +53,6 @@ class AlarmItem extends StatelessWidget {
             ),
             children: [
               DayToggleBar(context: context, alarm: alarm),
-              Center(
-                child: IconButton(
-                  icon: Icon(Icons.alarm_off),
-                  onPressed: () => client.subraction.add(alarm),),
-              )
             ],
           ),
       ), 
@@ -106,15 +100,19 @@ class DayToggleBar extends StatelessWidget {
     final client = ClientProvider.of(context).client;
     return ButtonBar(
       mainAxisSize: MainAxisSize.min,
-      children: Day.values.map((d) =>
-      FlatButton(
-        shape: CircleBorder(), 
-        textColor: alarm.days.contains(d) ? theme.primaryColorDark : theme.primaryColorLight,
-        color: alarm.days.contains(d) ? theme.primaryIconTheme.color : theme.accentIconTheme.color, 
-        child: Text(enumName(d), style: TextStyle(fontSize: 14),), 
-        onPressed: () {
-          client.updateItem(alarm, CronJob(command: alarm.command, time: alarm.time, days: alarm.days));
-        },)
+      children: Day.values.map((d) {
+        final active = alarm.days.contains(d);
+        return FlatButton(
+          shape: CircleBorder(), 
+          textColor: active ? theme.primaryColorDark : theme.primaryColorLight,
+          color: active ? theme.primaryIconTheme.color : theme.accentIconTheme.color, 
+          child: Text(enumName(d), style: TextStyle(fontSize: 14),), 
+          onPressed: () {
+            if (!alarm.days.remove(d)) alarm.days.add(d);   
+            //client.updateItem(alarm, CronJob(command: alarm.command, time: alarm.time, days: alarm.days));
+          },
+        );
+      }
     ).toList());
   }
 }

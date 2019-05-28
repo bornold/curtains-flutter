@@ -11,34 +11,53 @@ class ClientProvider extends InheritedWidget {
   ClientProvider({this.client, Widget child}) : super(child: child);
 
   @override
-  bool updateShouldNotify(InheritedWidget oldWidget) => true;
+  bool updateShouldNotify(ClientProvider oldWidget) => true;
 
   static ClientProvider of(BuildContext context) =>
       context.inheritFromWidgetOfExactType(ClientProvider);
 }
 
-class ClientBloc {
+enum SshState {
+  disconnected,
+  connecting,
+  connected
+}
+
+abstract class ClientBloc {
+  Stream<List<CronJob>> get alarms;
+  Stream<SshState> get connection;
+  Sink<CronJob> get alarmSink;
+  Future refresh({bool forceRefresh = false});
+  void updateItem(CronJob oldAlarm, CronJob newAlarm);
+  void dispose();
+  void disconnect();
+  void connect();
+} 
+
+class MockedClientBloc implements ClientBloc {
   Stream<List<CronJob>> get alarms => _alarmsSubject.stream;
   final _alarmsSubject = BehaviorSubject<UnmodifiableListView<CronJob>>();
 
-  Sink<CronJob> get addition => _additionController.sink;
-  final _additionController = StreamController<CronJob>();
+  Stream<SshState> get connection => _connectionSubject.stream;
+  final _connectionSubject = BehaviorSubject<SshState>();
 
-  Sink<CronJob> get subraction => _subractionController.sink;
-  final _subractionController = StreamController<CronJob>();
+  Sink<CronJob> get alarmSink => _alarmChangeController.sink;
+  final _alarmChangeController = StreamController<CronJob>();
 
   var _alarms = <CronJob>[];
 
-  ClientBloc() {
-    _additionController.stream.listen(onDataAdd);
-    _subractionController.stream.listen(onDataRemove);
+  MockedClientBloc() {
+    _alarmChangeController.stream.listen(_onData);
     refresh();
   }
 
   Future refresh({bool forceRefresh = false}) async {
     if (forceRefresh || _alarms == null || _alarms.isEmpty) {
       _alarms = _generateJobs;
-      await Future.delayed(Duration(seconds: 6), () => _alarms);
+      await Future.delayed(Duration(seconds: 3));
+      _connectionSubject.add(SshState.connecting);
+      await Future.delayed(Duration(seconds: 2));
+      _connectionSubject.add(SshState.connected);
       _update();
     }
   }
@@ -52,14 +71,25 @@ class ClientBloc {
 
   Future open() => Future.delayed(Duration(seconds: 4), () {});
 
-  void onDataAdd(CronJob event) {
-    _alarms.add(event);
+
+  void connect() {
+    _connectionSubject.add(SshState.connected);
+  }
+  
+  void disconnect() {
+    _connectionSubject.add(SshState.disconnected);
+  }
+
+  void _onData(CronJob event) {
+    if (!_alarms.remove(event)) {
+      _alarms.add(event);
+    }
     _update();
   }
 
-  void onDataRemove(CronJob event) {
-    _alarms.remove(event);
-    _update();
+  void dispose() {
+    _alarmChangeController.close();
+    _connectionSubject.close();
   }
 
   List<CronJob> get _generateJobs => [

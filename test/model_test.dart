@@ -1,15 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:curtains/models/cronjob.dart';
+import 'package:uuid/uuid.dart';
 
 void main() {
-    group('cronjob', () {
+  void expectH(
+  String actual,
+  String matcher, {
+  String reason,
+  dynamic skip, // true or a String
+}) => expect(actual.replaceAll(RegExp(r'#\S{36}$'), '').trim(), matcher,reason: reason, skip: skip);
+
+  group('cronjob', () {
     test('gives correct time back', () {
       final timeIn = TimeOfDay(hour: 1, minute: 1);
       final daysIn = Set<Day>.from([Day.fri]);
       final job = CronJob(command: 'ls', time: timeIn, days: daysIn);
       
-      expect(job.toString(), '1 1 * * fri ls');
+      expectH(job.toString(), '1 1 * * fri ls');
       expect(job.days, daysIn.toSet());
       expect(job.time, timeIn);
     });
@@ -20,7 +28,7 @@ void main() {
       final job = CronJob(command: '', time: timeIn, days: daysIn);
       
 
-      expect(job.toString(), '59 23 * * fri');
+      expectH(job.toString(), '59 23 * * fri');
       expect(job.days, daysIn.toSet());
       expect(job.time, timeIn);
     });
@@ -30,7 +38,7 @@ void main() {
       final daysIn = Set<Day>.from([Day.fri]);
       final job = CronJob(command: '', time: timeIn, days: daysIn);
 
-      expect(job.toString(), '59 23 * * fri');
+      expectH(job.toString(), '59 23 * * fri');
       expect(job.days, daysIn.toSet());
       expect(job.time, timeIn);
     });
@@ -44,7 +52,7 @@ void main() {
       final daysIn = Set<Day>.from([Day.thu]);
       final job = CronJob(command: '', time: timeIn, days: daysIn);
 
-      expect(job.toString(), '59 23 * * thu');
+      expectH(job.toString(), '59 23 * * thu');
       expect(job.days, daysIn.toSet());
       expect(job.time, timeIn);
     });
@@ -54,7 +62,7 @@ void main() {
       final daysIn = Set<Day>.from([Day.mon, Day.tue, Day.wed, Day.thu, Day.fri, Day.sat, Day.sun,]);
       final job = CronJob(command: '', time: timeIn, days: daysIn);
 
-      expect(job.toString(), '0 10 * * mon,tue,wed,thu,fri,sat,sun');
+      expectH(job.toString(), '0 10 * * mon,tue,wed,thu,fri,sat,sun');
     });
 
     test('does not repeat days', () {
@@ -62,7 +70,7 @@ void main() {
       final daysIn = Set<Day>.from([Day.mon, Day.mon, Day.sun]);
       final job = CronJob(command: 'pwd', time: timeIn, days: daysIn);
 
-      expect(job.toString(), '13 12 * * mon,sun pwd');
+      expectH(job.toString(), '13 12 * * mon,sun pwd');
        expect(job.days, daysIn.toSet());
       expect(job.time, timeIn);
     });
@@ -72,7 +80,7 @@ void main() {
       final daysIn = Set<Day>.from([Day.mon, Day.wed, Day.sun]);
       final job = CronJob(command: 'pwd', time: timeIn, days: daysIn);
 
-      expect(job.toString(), '34 12 * * mon,wed,sun pwd');
+      expectH(job.toString(), '34 12 * * mon,wed,sun pwd');
        expect(job.days, daysIn.toSet());
       expect(job.time, timeIn);
     });
@@ -81,7 +89,7 @@ void main() {
       final timeIn = TimeOfDay(hour: 15, minute: 45);
       final job = CronJob.everyday(command: 'ls', time: timeIn);
 
-      expect(job.toString(), '45 15 * * mon,tue,wed,thu,fri,sat,sun ls');
+      expectH(job.toString(), '45 15 * * mon,tue,wed,thu,fri,sat,sun ls');
       expect(job.days, Day.values.toSet());
       expect(job.time, timeIn);
     });
@@ -92,20 +100,21 @@ void main() {
       final command = 'pwd aabs test liong command -s';
       final job = CronJob(command: command, time: timeIn, days: daysIn);
 
-      expect(job.toString(), '34 12 * * mon,wed,sun ' + command);
+      expectH(job.toString(), '34 12 * * mon,wed,sun ' + command);
       expect(job.days, daysIn.toSet());
       expect(job.time, timeIn);
       expect(job.command, command);
     });
 
     test('parsing string', () {
-      var raw = '12 14 * * mon,fri,sun pwd some thing else';
+      final uuid = Uuid().v1();
+      var raw = '12 14 * * mon,fri,sun pwd some thing else #$uuid';
       final job = CronJob.parse(raw);
-
       expect(job.toString(), raw);
       expect(job.days, [Day.mon,Day.fri,Day.sun].toSet());
       expect(job.time, TimeOfDay(hour: 14, minute: 12));
       expect(job.command, 'pwd some thing else');
+      expect(job.uuid, uuid);
     });
   });
 }
