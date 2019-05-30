@@ -5,6 +5,32 @@ import 'package:curtains/models/cronjob.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 
+class ClientBloc {
+  final _alarmsSubject = BehaviorSubject<UnmodifiableListView<CronJob>>();
+  final _updateAlarmsSubject = PublishSubject<CronJob>();
+
+  final _connectionSubject = BehaviorSubject<SshState>();
+  final _connectionController = StreamController<ConnectionEvents>();
+
+  final _alarmsSetChangeController = StreamController<CronJob>();
+  Stream<List<CronJob>> get alarms => _alarmsSubject.stream;
+
+  Sink<CronJob> get alarmSink => _alarmsSetChangeController.sink;
+  Stream<SshState> get connection => _connectionSubject.stream;
+
+  Sink<ConnectionEvents> get connectionEvents => _connectionController.sink;
+  Sink<CronJob> get updateAlarmSink => _updateAlarmsSubject.sink;
+
+  Stream<CronJob> get updatedAlarms => _updateAlarmsSubject.stream; 
+
+  void dispose() {
+    _alarmsSetChangeController.close();
+    _connectionSubject.close();
+    _connectionController.close();
+    _updateAlarmsSubject.close();
+  }
+}
+
 class ClientProvider extends InheritedWidget {
   final ClientBloc client;
 
@@ -17,113 +43,99 @@ class ClientProvider extends InheritedWidget {
       context.inheritFromWidgetOfExactType(ClientProvider);
 }
 
-enum SshState {
-  disconnected,
-  connecting,
-  connected
+enum ConnectionEvents {
+  connect,
+  disconnect,
+  refresh,
+  open
 }
 
-abstract class ClientBloc {
-  Stream<List<CronJob>> get alarms;
-  Stream<SshState> get connection;
-  Sink<CronJob> get alarmSink;
-  Future refresh({bool forceRefresh = false});
-  void updateItem(CronJob oldAlarm, CronJob newAlarm);
-  void dispose();
-  void disconnect();
-  void connect();
-} 
-
-class MockedClientBloc implements ClientBloc {
-  Stream<List<CronJob>> get alarms => _alarmsSubject.stream;
-  final _alarmsSubject = BehaviorSubject<UnmodifiableListView<CronJob>>();
-
-  Stream<SshState> get connection => _connectionSubject.stream;
-  final _connectionSubject = BehaviorSubject<SshState>();
-
-  Sink<CronJob> get alarmSink => _alarmChangeController.sink;
-  final _alarmChangeController = StreamController<CronJob>();
-
+class MockedClientBloc extends ClientBloc {
   var _alarms = <CronJob>[];
 
   MockedClientBloc() {
-    _alarmChangeController.stream.listen(_onData);
-    refresh();
+    _connectionController.stream.listen(_onConnectionRequest);
+    _alarmsSetChangeController.stream.listen(_onNewAlarm);
   }
-
-  Future refresh({bool forceRefresh = false}) async {
-    if (forceRefresh || _alarms == null || _alarms.isEmpty) {
+    
+  List<CronJob> get _generateJobs => [
+    new CronJob(
+        time: TimeOfDay(hour: 6, minute: 30),
+        days: [
+          Day.mon,
+          Day.tue,
+          Day.wed,
+          Day.thu,
+          Day.fri,
+          Day.sat,
+          Day.sun
+        ].toSet()),
+    new CronJob(
+        time: TimeOfDay(hour: 7, minute: 30),
+        days: [Day.mon, Day.sat].toSet()),
+    new CronJob(
+        time: TimeOfDay(hour: 8, minute: 41),
+        days: [Day.mon].toSet()),
+    new CronJob(
+        time: TimeOfDay(hour: 8, minute: 41),
+        days: [Day.mon].toSet()),
+    new CronJob(
+        time: TimeOfDay(hour: 8, minute: 42),
+        days: [Day.mon].toSet()),
+    new CronJob(
+        time: TimeOfDay(hour: 8, minute: 43),
+        days: [Day.mon, Day.wed, Day.fri, Day.sun].toSet()),
+  ];
+ 
+  Future refresh() async {
+    if (_alarms == null || _alarms.isEmpty) {
       _alarms = _generateJobs;
-      await Future.delayed(Duration(seconds: 3));
-      _connectionSubject.add(SshState.connecting);
-      await Future.delayed(Duration(seconds: 2));
-      _connectionSubject.add(SshState.connected);
-      _update();
     }
-  }
-
-  _update() => _alarmsSubject.add(UnmodifiableListView(_alarms));
-
-  void updateItem(CronJob oldAlarm, CronJob newAlarm) {
-    _alarms[_alarms.indexOf(oldAlarm)] = newAlarm;
     _update();
   }
-
-  Future open() => Future.delayed(Duration(seconds: 4), () {});
-
-
-  void connect() {
-    _connectionSubject.add(SshState.connected);
-  }
   
-  void disconnect() {
-    _connectionSubject.add(SshState.disconnected);
+  void _onConnectionRequest(ConnectionEvents event) async {
+    switch (event) {
+      case ConnectionEvents.connect:
+        _connectionSubject.add(SshState.connecting);
+        await Future.delayed(Duration(seconds: 2));
+        refresh();
+        _connectionSubject.add(SshState.connected);
+        break;
+      case ConnectionEvents.disconnect:
+          _connectionSubject.add(SshState.disconnected);
+        break;
+      case ConnectionEvents.open:
+          _connectionSubject.add(SshState.busy);
+          await Future.delayed(Duration(seconds: 2));
+          _connectionSubject.add(SshState.connected);
+        break;
+      case ConnectionEvents.refresh:
+        _connectionSubject.add(SshState.busy);
+        await Future.delayed(Duration(seconds: 1));
+        await refresh();
+        _connectionSubject.add(SshState.connected);
+        break;
+      default:
+    }
   }
-
-  void _onData(CronJob event) {
+    
+  void _onNewAlarm(CronJob event) {
     if (!_alarms.remove(event)) {
       _alarms.add(event);
     }
     _update();
   }
-
-  void dispose() {
-    _alarmChangeController.close();
-    _connectionSubject.close();
+    
+  _update() {
+    _alarms.sort((a1,a2) => a2.compareTo(a1));
+    _alarmsSubject.add(UnmodifiableListView(_alarms));
   }
+} 
 
-  List<CronJob> get _generateJobs => [
-      new CronJob(
-          command: 'ls',
-          time: TimeOfDay(hour: 6, minute: 30),
-          days: [
-            Day.mon,
-            Day.tue,
-            Day.wed,
-            Day.thu,
-            Day.fri,
-            Day.sat,
-            Day.sun
-          ].toSet()),
-      new CronJob(
-          command: 'ls',
-          time: TimeOfDay(hour: 7, minute: 30),
-          days: [Day.mon, Day.sat].toSet()),
-      new CronJob(
-          command: 'ls',
-          time: TimeOfDay(hour: 8, minute: 41),
-          days: [Day.mon].toSet()),
-      new CronJob(
-          command: 'ls',
-          time: TimeOfDay(hour: 8, minute: 41),
-          days: [Day.mon].toSet()),
-      new CronJob(
-          command: 'ls',
-          time: TimeOfDay(hour: 8, minute: 42),
-          days: [Day.mon].toSet()),
-      new CronJob(
-          command: 'ls',
-          time: TimeOfDay(hour: 8, minute: 43),
-          days: [Day.mon, Day.wed, Day.fri, Day.sun].toSet()),
-    ];
+enum SshState {
+  disconnected,
+  connecting,
+  connected,
+  busy
 }

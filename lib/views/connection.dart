@@ -15,7 +15,7 @@ class ConnectionInfo extends StatelessWidget {
               floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
               floatingActionButton: FloatingActionButton(
                 child: Icon(Icons.phonelink),
-                onPressed: client.connect,
+                onPressed: () => client.connectionEvents.add(ConnectionEvents.connect),
                 ),
               );
           }
