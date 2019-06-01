@@ -1,49 +1,70 @@
+import 'dart:collection';
+
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
+const String open_command = '~/bin/open';
+
 class CronJob implements Comparable<CronJob> {
-  String command;
-  TimeOfDay time;
-  Set<Day> days;
-  String uuid = Uuid().v1();
-  CronJob({this.command = 'open', @required this.time, @required this.days}) 
-  : assert(time.hour < 24),
-    assert(time.minute < 60),
+  
+  final String command;
+  final TimeOfDay time;
+  final UnmodifiableListView<Day> days;
+  String get uuid => _uuid;
+  String _uuid;
+
+  CronJob({@required this.time, @required Set<Day> days, this.command = open_command, String uuid})
+  : _uuid = uuid ?? Uuid().v4(),
+    days = UnmodifiableListView<Day>(days),
     assert(command != null),
+    assert(time.hour < 24),
+    assert(time.minute < 60),
     assert(days != null);
   
-  CronJob.everyday({command = '', @required time}) : this(command: command,time: time, days: Day.values.toSet());
+  CronJob.everyday({@required TimeOfDay time}) : this(time: time, days: Day.values.toSet());
+  CronJob.clone({@required CronJob from, TimeOfDay newTime,  Set<Day> newDays, String newCommand}) 
+  : this(
+      time: newTime ?? TimeOfDay(hour: from.time.hour, minute: from.time.minute),
+      days: newDays ?? from.days.toSet(), 
+      command: newCommand ?? from.command, 
+      uuid: from.uuid);
      
-  CronJob.parse(String raw) {
-    Day _parseDay(String dayStr) => 
-    Day.values.firstWhere((e) => e.toString() == 'Day.$dayStr');
-    var splitted = raw.split(' ');
+  factory CronJob.parse(String raw) {
+    Day _parseDay(String dayStr) => Day.values.firstWhere((e) => e.toString() == 'Day.$dayStr', orElse: null);
+    int uuidPart = raw.lastIndexOf('#');
+    String uuid;
+    if (uuidPart > 0) {
+      uuid = raw.substring(uuidPart + 1, raw.length);
+      raw = raw.substring(0, uuidPart);
+    }
+    var splitted = raw.trim().split(' ');
     int min = int.tryParse(splitted.removeAt(0)) ?? 0;
     int hour = int.tryParse(splitted.removeAt(0)) ?? 0;
-    this.time = TimeOfDay(hour: hour, minute: min);
     splitted.removeRange(0, 2);
     final dayPart = splitted.removeAt(0);
-    this.days = dayPart == '*' ? Set<Day>.identity() 
+    final days = dayPart == '*' ? Set<Day>.identity() 
         : dayPart
             .split(',')
             .map(_parseDay)
             .toSet();
-    this.uuid = splitted.removeLast().split('#').last;
-    this.command = splitted.join(' ');
+   
+    final command = splitted.join(' ');
+    final time = TimeOfDay(hour: hour, minute: min);
+    return CronJob( days: days, time: time, command: command, uuid: uuid);
   }
 
+  @override
+  String toString() => raw;
   String get raw => "${time.minute} ${time.hour} * * ${days.isEmpty ? '*' : _daysToCronDays(days)} $command #$uuid".trim();
- 
+
   @override
   int compareTo(CronJob other) {
     int hourComp = other.time.hour.compareTo(time.hour);
     return hourComp == 0 ? other.time.minute.compareTo(time.minute) : hourComp;
   }
 
-  @override
-  String toString() => raw;
-
-  String _daysToCronDays(Set<Day> days) => days.isEmpty ? '' : days.map((day) => _dayToCronString(day)).join(',');
+  String _daysToCronDays(UnmodifiableListView<Day> days) => days.isEmpty ? '' :
+     SplayTreeSet.from(days, (a,b) => Day.values.indexOf(a).compareTo(Day.values.indexOf(b))).map((day) => _dayToCronString(day)).join(',');
   String _dayToCronString(Day day) {
     switch (day) {
       case Day.mon: 
@@ -64,8 +85,6 @@ class CronJob implements Comparable<CronJob> {
         return '';
     }
   }
-
-
 }
 
 enum Day {

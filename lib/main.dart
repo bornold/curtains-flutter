@@ -1,3 +1,4 @@
+import 'package:curtains/datasource/client.dart';
 import 'package:curtains/datasource/client_bloc.dart';
 import 'package:curtains/views/alarmPage.dart';
 import 'package:curtains/views/connection.dart';
@@ -6,31 +7,20 @@ import 'package:flutter/material.dart';
 
 void main() => runApp(MyApp());
 
-class MainPage extends StatelessWidget {
-  final String title = 'curtains';
-  Widget build(BuildContext context) {
-    final client = ClientProvider.of(context).client;
-    return StreamBuilder<SshState>(
-        stream: client.connection,
-        initialData: SshState.disconnected,
-        builder: (context, snapshot) {
-          switch (snapshot.data) {
-            case SshState.disconnected:
-              return ConnectionInfo();
-            default:
-              return AlarmPage();
-          }
-        });
-  }
-}
-
 class MyApp extends StatefulWidget {
   @override
   _MyAppState createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
-  final _client = MockedClientBloc();
+  final _client = Client();
+
+  @override
+  void dispose() {
+    _client.dispose();
+    super.dispose();
+  } 
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -55,17 +45,30 @@ class _MyAppState extends State<MyApp> {
             minWidth: 36,
             padding: EdgeInsets.zero,
           ),
+          iconTheme: IconThemeData(size: 42.0),
       ),
       home: ClientProvider(
         client: _client,
         child: MainPage(),
       ),
     );
-  }
+  } 
+}
 
-  @override
-  void dispose() {
-    _client.dispose();
-    super.dispose();
+class MainPage extends StatelessWidget {
+  final String title = 'curtains';
+  Widget build(BuildContext context) {
+    final client = ClientProvider.of(context).client;
+    return StreamBuilder<SshState>(
+        stream: client.connection,
+        initialData: SshState.disconnected,
+        builder: (context, snapshot) {
+          switch (snapshot.data) {
+            case SshState.disconnected:
+              return ConnectionInfo();
+            default:
+              return AlarmPage();
+          }
+        });
   }
 }

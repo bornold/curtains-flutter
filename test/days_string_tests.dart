@@ -1,13 +1,15 @@
+library days_string_tests;
+
 import 'package:curtains/helper/dayToString.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:curtains/models/cronjob.dart';
 
-
 void main() {
   final timeIn = TimeOfDay(hour: 1, minute: 1);
-  final cmd = 'ls';
-  CronJob newjob(daysIn) => CronJob(command: cmd, time: timeIn, days: daysIn);
+  CronJob newjob(daysIn) => CronJob(time: timeIn, days: daysIn);
+
+  group('days to string tests', () {
     test('no days no string', () {
       final job = newjob(Set<Day>.identity());
       expect(daysToString(job.days), '');
@@ -21,7 +23,7 @@ void main() {
       expect(daysToString(job.days), 'saturday');
     });
     test('Everyday is everyday', () {
-      final job = CronJob.everyday(time: timeIn, command: cmd);
+      final job = CronJob.everyday(time: timeIn);
       expect(daysToString(job.days), 'everyday');
     });
     test('Day.mon, Day.tue is monday and tuesday', () {
@@ -102,4 +104,5 @@ void main() {
       final job = newjob([Day.mon, Day.wed, Day.thu, Day.fri, Day.sun].toSet());
       expect(daysToString(job.days), 'monday, wednesday to friday and sunday');
     });
+  });
 }

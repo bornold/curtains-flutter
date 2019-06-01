@@ -1,3 +1,7 @@
+#Sensitive stuffs
+lib/sensitive.dart
+assets/.ssh/*
+
 # Miscellaneous
 *.class
 *.log

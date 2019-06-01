@@ -1,3 +1,5 @@
+library model_tests;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:curtains/models/cronjob.dart';
@@ -11,7 +13,7 @@ void main() {
   String reason,
   dynamic skip,}) => expect(actual.replaceAll(RegExp(r'#\S{36}$'), '').trim(), matcher,reason: reason, skip: skip);
 
-  group('cronjob', () {
+  group('cronjob models', () {
     test('gives correct time back', () {
       final timeIn = TimeOfDay(hour: 1, minute: 1);
       final daysIn = Set<Day>.from([Day.fri]);
@@ -86,9 +88,9 @@ void main() {
 
     test('everyday constructor returns all days', () {
       final timeIn = TimeOfDay(hour: 15, minute: 45);
-      final job = CronJob.everyday(command: 'ls', time: timeIn);
+      final job = CronJob.everyday(time: timeIn);
 
-      expectH(job.toString(), '45 15 * * mon,tue,wed,thu,fri,sat,sun ls');
+      expectH(job.toString(), '45 15 * * mon,tue,wed,thu,fri,sat,sun ' + open_command);
       expect(job.days, Day.values.toSet());
       expect(job.time, timeIn);
     });
@@ -135,6 +137,15 @@ void main() {
       expect(job.time, TimeOfDay(hour: 14, minute: 12));
       expect(job.command, 'pwd some thing else');
       expect(job.uuid, uuid);
+    });
+
+    test('parsing string without uuid ', () {
+      var raw = '55 6 * * mon,tue,wed,thu,fri python ~/motor/open.py\r';
+      final job = CronJob.parse(raw);
+      expectH(job.toString(), raw.trim());
+      expect(job.days, [Day.mon, Day.tue, Day.wed, Day.thu, Day.fri,].toSet());
+      expect(job.time, TimeOfDay(hour: 6, minute: 55));
+      expect(job.command, 'python ~/motor/open.py');
     });
   });
 }

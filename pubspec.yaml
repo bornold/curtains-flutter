@@ -1,5 +1,5 @@
 name: curtains
-description: A new Flutter project.
+description: This will open my curtains.
 
 version: 1.0.0+1
 
@@ -11,6 +11,8 @@ dependencies:
     sdk: flutter
   ssh: ^0.0.3
   rxdart: ^0.22.0
+  shared_preferences: ^0.5.2+2
+  flutter_secure_storage: ^3.2.1+1
 
 dev_dependencies:
   flutter_test:

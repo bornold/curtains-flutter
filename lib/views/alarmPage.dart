@@ -9,26 +9,45 @@ import 'package:flutter/material.dart';
 class AddAlarmButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return FloatingActionButton( 
-      
-      onPressed: () async {
-        TimeOfDay selectedTime = await showTimePicker(
-            initialTime: TimeOfDay.now(),
-            context: context,
-            builder: (context, child) => Theme(
-                  data: Theme.of(context),
-                  child: child,
-                ));
-        if (selectedTime != null) {
-          ClientProvider
-            .of(context)
-            .client
-            .alarmSink
-            .add(CronJob(time: selectedTime, days: Day.values.toSet()));
-        }
-      },
-      tooltip: 'Add alarm',
-      child: Icon(Icons.alarm_add),
+
+    final client = ClientProvider.of(context).client;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: <Widget>[
+        FloatingActionButton( 
+          onPressed: () async {
+            TimeOfDay selectedTime = await showTimePicker(
+                initialTime: TimeOfDay.now(),
+                context: context,
+                builder: (context, child) => Theme(
+                      data: Theme.of(context),
+                      child: child,
+                    )
+              );
+            if (selectedTime != null) {
+              client.alarmSink.add(CronJob.everyday(time: selectedTime));
+            }
+          },
+          tooltip: 'add alarm',
+          child: Icon(Icons.alarm_add),
+        ),
+        SizedBox(
+          width: 72, 
+          child: StreamBuilder<SshState>(
+            stream: client.connection,
+            initialData: SshState.busy,
+            builder: (context, snapshot) {
+              final busy = snapshot.data == SshState.busy;
+              return busy ? CircularProgressIndicator() :
+              FloatingActionButton(
+              onPressed: () => client.connectionEvents.add(ConnectionEvents.open),
+              tooltip: 'open curtains',
+              child: Icon(Icons.flare),
+            );
+            }
+          ),
+        ),
+      ],
     );
   }
 }
@@ -108,7 +127,7 @@ class AlarmPage extends StatelessWidget {
           duration: duration - Duration(milliseconds: 200),
           content: Text('${alarm.time.format(context)} removed'),
           action: SnackBarAction(
-              label: 'Undo',
+              label: 'undo',
               onPressed: () {
                 if (!c.isCompleted) c.complete(false);
               })));

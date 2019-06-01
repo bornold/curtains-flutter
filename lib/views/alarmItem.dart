@@ -41,8 +41,7 @@ class AlarmItem extends StatelessWidget {
                                     child: child,
                                   ));
                           if (selectedTime != null) {
-                            alarm.time = selectedTime;
-                            client.updateAlarmSink.add(alarm);
+                            client.updateAlarmSink.add(CronJob.clone(from: alarm, newTime: selectedTime));
                           }
                         },
                       ),
@@ -91,8 +90,9 @@ class DayToggleBar extends StatelessWidget {
               style: TextStyle(fontSize: 14),
             ),
             onPressed: () {
-              if (!alarm.days.remove(d)) alarm.days.add(d);
-              client.updateAlarmSink.add(alarm);
+              var oldDays = alarm.days.toSet();
+              if (!oldDays.remove(d)) oldDays.add(d);
+              client.updateAlarmSink.add(CronJob.clone(from: alarm, newDays: oldDays));
             },
           );
         }).toList());

@@ -7,7 +7,7 @@ String capitalize(String s)
   return splitted.join();
 }
 
-String daysToString(Set<Day> days) {
+String daysToString(Iterable<Day> days) {
     String _dayToString(Day day) {
       switch (day) {
         case Day.mon: 
@@ -29,7 +29,7 @@ String daysToString(Set<Day> days) {
       }
     }
 
-    Day _findFirstDay(Set<Day> dayChain) {
+    Day _findFirstDay(Iterable<Day> dayChain) {
       if (dayChain.contains(Day.mon)) {
         var firstDay = Day.mon;
         for (final d in Day.values.reversed) {
@@ -63,7 +63,7 @@ String daysToString(Set<Day> days) {
           d2Index - d1Index + 1;
     }
 
-    String _longestDayChain(Set<Day> dayChain) {
+    String _longestDayChain(Iterable<Day> dayChain) {
       Day firstDay = _findFirstDay(dayChain);
       int firstDayIndex = dayToIndex(firstDay);
       int lastDayIndex = firstDayIndex;
@@ -109,7 +109,7 @@ String daysToString(Set<Day> days) {
       }
     }
     if (days?.isEmpty ?? true) return '';
-    if (days.containsAll(Day.values.toSet())) return 'everyday';
+    if (days.toSet().containsAll(Day.values.toSet())) return 'everyday';
     return _longestDayChain(days);
   }
 String enumName(Day d) => capitalize(d.toString().split('.').last);
