@@ -40,7 +40,7 @@ class AddAlarmButton extends StatelessWidget {
               final busy = snapshot.data == SshState.busy;
               return busy ? CircularProgressIndicator() :
               FloatingActionButton(
-              onPressed: () => client.connectionEvents.add(ConnectionEvents.open),
+              onPressed: () => client.connectionEvents.add(ConnectionEvent.open),
               tooltip: 'open curtains',
               child: Icon(Icons.flare),
             );
@@ -61,13 +61,13 @@ class AlarmPage extends StatelessWidget {
           leading: IconButton(
             icon: Icon(Icons.phonelink_off),
             onPressed: () =>
-                client.connectionEvents.add(ConnectionEvents.disconnect),
+                client.connectionEvents.add(ConnectionEvent.disconnect),
             color: Theme.of(context).accentColor,
           ),
           title: Text(title)),
       body: RefreshIndicator(
           onRefresh: () async {
-            client.connectionEvents.add(ConnectionEvents.refresh);
+            client.connectionEvents.add(ConnectionEvent.refresh);
             await Future.delayed(Duration(milliseconds: 50));
             await for (var value in client.connection) {
               if (value == SshState.connected) {
@@ -77,13 +77,14 @@ class AlarmPage extends StatelessWidget {
           },
           child: StreamBuilder<UnmodifiableListView<CronJob>>(
               stream: client.alarms,
-              builder: (context, snapshot) => snapshot.hasData
-                  ? ListView(
-                      children: snapshot.data
-                          .map<Widget>(
-                      (a) => Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: Dismissible(
+              builder: (context, snapshot) => 
+                snapshot.hasData ? 
+                  ListView(
+                    children: snapshot.data.map<Widget>(
+                      (a) => 
+                        Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: Dismissible(
                               key: Key(a.uuid),
                               resizeDuration: Duration(milliseconds: 1000),
                               direction: DismissDirection.startToEnd,
@@ -107,7 +108,9 @@ class AlarmPage extends StatelessWidget {
                         height: 80,
                       )
                     ]).toList())
-                  : Center(child: CircularProgressIndicator()))),
+                  : Center(child: CircularProgressIndicator())
+          )
+        ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: AddAlarmButton(),
     );

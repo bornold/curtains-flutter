@@ -1,5 +1,6 @@
 library model_tests;
 
+import 'package:curtains/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:curtains/models/cronjob.dart';

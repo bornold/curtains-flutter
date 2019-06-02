@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:curtains/models/connection_info.dart';
 import 'package:curtains/models/cronjob.dart';
 import 'package:flutter/material.dart';
 
@@ -19,12 +20,14 @@ abstract class ClientBloc {
   Stream<SshState> get connection;
   Stream<CronJob> get updatedAlarms;
   Sink<CronJob> get alarmSink;
-  Sink<ConnectionEvents> get connectionEvents;
+  Sink<ConnectionEvent> get connectionEvents;
   Sink<CronJob> get updateAlarmSink;
+  Sink<ConnectionInfo> get connectionInfoSink;
+
   void dispose();
 }
 
-enum ConnectionEvents {
+enum ConnectionEvent {
   connect,
   disconnect,
   refresh,

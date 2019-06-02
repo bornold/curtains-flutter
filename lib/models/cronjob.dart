@@ -1,9 +1,8 @@
 import 'dart:collection';
 
+import 'package:curtains/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
-
-const String open_command = '~/bin/open';
 
 class CronJob implements Comparable<CronJob> {
   

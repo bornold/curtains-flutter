@@ -1,9 +1,13 @@
+import 'package:curtains/constants.dart';
 import 'package:curtains/datasource/client.dart';
 import 'package:curtains/datasource/client_bloc.dart';
+import 'package:curtains/models/connection_info.dart';
 import 'package:curtains/views/alarmPage.dart';
 import 'package:curtains/views/connection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() => runApp(MyApp());
 
@@ -14,6 +18,34 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final _client = Client();
+
+  @override
+  void initState() {
+    getConnectionInfo();
+    super.initState();
+  }
+
+  void getConnectionInfo() async {
+    final storage = FlutterSecureStorage();
+    final prefs = await SharedPreferences.getInstance();
+    if  (prefs.getBool(autoconnect_prefs_key) ?? false) {
+      final ip = prefs.getString(adress_prefs_key);
+      final port = prefs.getInt(port_prefs_key);
+      final passphrase = await storage.read(key: passphrase_sercure_key);
+
+      if (ip != null && 
+        port != null && 
+        passphrase != null) {
+          final sshkey = await DefaultAssetBundle.of(context).loadString(private_key_path);
+          final cInfo = ConnectionInfo(host: ip, port: port, privatekey: sshkey, passphrase: passphrase);
+          _client.connectionInfoSink.add(cInfo);
+          _client.connectionEvents.add(ConnectionEvent.connect);
+          return;
+      }
+    }
+
+    _client.connectionEvents.add(ConnectionEvent.disconnect);
+  }
 
   @override
   void dispose() {
@@ -61,11 +93,18 @@ class MainPage extends StatelessWidget {
     final client = ClientProvider.of(context).client;
     return StreamBuilder<SshState>(
         stream: client.connection,
-        initialData: SshState.disconnected,
+        initialData: SshState.connecting,
         builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return ConnectionSettings(error: snapshot.error);
+          }
           switch (snapshot.data) {
+            case SshState.connecting:
+              return Container(
+                decoration: BoxDecoration(color: Theme.of(context).scaffoldBackgroundColor), 
+                child: Center(child: CircularProgressIndicator()));
             case SshState.disconnected:
-              return ConnectionInfo();
+              return ConnectionSettings();
             default:
               return AlarmPage();
           }
