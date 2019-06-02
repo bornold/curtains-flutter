@@ -1,4 +1,6 @@
-  import 'package:curtains/models/cronjob.dart';
+  import 'dart:collection';
+
+import 'package:curtains/models/cronjob.dart';
 
 String capitalize(String s) 
 {
@@ -7,7 +9,7 @@ String capitalize(String s)
   return splitted.join();
 }
 
-String daysToString(Iterable<Day> days) {
+String daysToSentence(Iterable<Day> days) {
     String _dayToString(Day day) {
       switch (day) {
         case Day.mon: 
@@ -112,4 +114,26 @@ String daysToString(Iterable<Day> days) {
     if (days.toSet().containsAll(Day.values.toSet())) return 'everyday';
     return _longestDayChain(days);
   }
-String enumName(Day d) => capitalize(d.toString().split('.').last);
+
+  String daysToString(UnmodifiableListView<Day> days) => days.isEmpty ? '' :
+     SplayTreeSet.from(days, (a,b) => Day.values.indexOf(a).compareTo(Day.values.indexOf(b))).map((day) => dayToString(day)).join(',');
+  String dayToString(Day day) {
+    switch (day) {
+      case Day.mon: 
+        return 'mon';
+      case Day.tue: 
+        return 'tue';
+      case Day.wed: 
+        return 'wed';
+      case Day.thu: 
+        return 'thu';
+      case Day.fri: 
+        return 'fri';
+      case Day.sat: 
+        return 'sat';
+      case Day.sun: 
+        return 'sun';
+      default:
+        return '';
+    }
+  }

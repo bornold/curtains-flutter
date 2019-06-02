@@ -49,7 +49,7 @@ class AlarmItem extends StatelessWidget {
                     ),
                     Padding(
                       padding: const EdgeInsets.only(bottom: 8),
-                      child: Text(daysToString(alarm.days)),
+                      child: Text(daysToSentence(alarm.days)),
                     ),
                   ]),
               children: [
@@ -87,7 +87,7 @@ class DayToggleBar extends StatelessWidget {
                 ? theme.primaryIconTheme.color
                 : theme.accentIconTheme.color,
             child: Text(
-              enumName(d),
+              dayToString(d),
               style: TextStyle(fontSize: 14),
             ),
             onPressed: () {

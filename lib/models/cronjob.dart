@@ -1,6 +1,7 @@
 import 'dart:collection';
 
 import 'package:curtains/constants.dart';
+import 'package:curtains/helper/dayToString.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
@@ -54,35 +55,12 @@ class CronJob implements Comparable<CronJob> {
 
   @override
   String toString() => raw;
-  String get raw => "${time.minute} ${time.hour} * * ${days.isEmpty ? '*' : _daysToCronDays(days)} $command #$uuid".trim();
+  String get raw => "${time.minute} ${time.hour} * * ${days.isEmpty ? '*' : daysToString(days)} $command #$uuid".trim();
 
   @override
   int compareTo(CronJob other) {
     int hourComp = other.time.hour.compareTo(time.hour);
     return hourComp == 0 ? other.time.minute.compareTo(time.minute) : hourComp;
-  }
-
-  String _daysToCronDays(UnmodifiableListView<Day> days) => days.isEmpty ? '' :
-     SplayTreeSet.from(days, (a,b) => Day.values.indexOf(a).compareTo(Day.values.indexOf(b))).map((day) => _dayToCronString(day)).join(',');
-  String _dayToCronString(Day day) {
-    switch (day) {
-      case Day.mon: 
-        return 'mon';
-      case Day.tue: 
-        return 'tue';
-      case Day.wed: 
-        return 'wed';
-      case Day.thu: 
-        return 'thu';
-      case Day.fri: 
-        return 'fri';
-      case Day.sat: 
-        return 'sat';
-      case Day.sun: 
-        return 'sun';
-      default:
-        return '';
-    }
   }
 }
 

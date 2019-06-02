@@ -58,7 +58,7 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
   Widget build(BuildContext context) {
     final client = ClientProvider.of(context).client;
     return Scaffold(
-      appBar: AppBar(title: Text('connection Info')),
+      appBar: AppBar(title: Text('connection info')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(

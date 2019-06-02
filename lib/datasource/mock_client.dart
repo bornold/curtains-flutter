@@ -97,7 +97,7 @@ class MockedClient extends ClientBloc {
       case ConnectionEvent.refresh:
         connectionSubject.add(SshState.busy);
         await Future.delayed(Duration(seconds: 1));
-        await refresh();
+        refresh();
         connectionSubject.add(SshState.connected);
         break;
       default:
