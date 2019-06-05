@@ -9,15 +9,15 @@ import 'package:flutter/material.dart';
 class AddAlarmButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-
     final client = ClientProvider.of(context).client;
+    final openColor = Theme.of(context).highlightColor;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: <Widget>[
         FloatingActionButton( 
           onPressed: () async {
             TimeOfDay selectedTime = await showTimePicker(
-                initialTime: TimeOfDay.now(),
+                initialTime: TimeOfDay.fromDateTime(DateTime.now().add( Duration(minutes: 1))) ,
                 context: context,
                 builder: (context, child) => Theme(
                       data: Theme.of(context),
@@ -32,18 +32,21 @@ class AddAlarmButton extends StatelessWidget {
           child: Icon(Icons.alarm_add),
         ),
         SizedBox(
-          width: 72, 
+          width: 56,
+          height: 56,
           child: StreamBuilder<SshState>(
             stream: client.connection,
             initialData: SshState.busy,
             builder: (context, snapshot) {
               final busy = snapshot.data == SshState.busy;
-              return busy ? CircularProgressIndicator() :
-              FloatingActionButton(
-              onPressed: () => client.connectionEvents.add(ConnectionEvent.open),
-              tooltip: 'open curtains',
-              child: Icon(Icons.flare),
-            );
+              return busy ? 
+                CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(openColor),) :
+                FloatingActionButton(
+                  backgroundColor: openColor,
+                  onPressed: () => client.connectionEvents.add(ConnectionEvent.open),
+                  tooltip: 'open curtains',
+                  child: Icon(Icons.flare),
+                );
             }
           ),
         ),
@@ -62,7 +65,6 @@ class AlarmPage extends StatelessWidget {
             icon: Icon(Icons.phonelink_off),
             onPressed: () =>
                 client.connectionEvents.add(ConnectionEvent.disconnect),
-            color: Theme.of(context).accentColor,
           ),
           title: Text(title)),
       body: RefreshIndicator(

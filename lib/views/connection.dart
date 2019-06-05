@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:curtains/constants.dart';
 import 'package:curtains/datasource/client_bloc.dart';
 import 'package:curtains/models/connection_info.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -14,8 +17,20 @@ class ConnectionSettings extends StatefulWidget {
 }
 
 class _ConnectionSettingsState extends State<ConnectionSettings> {
-  _ConnectionSettingsState({this.error});
-  Exception error;
+  _ConnectionSettingsState({Exception error}) {
+    if (error is TimeoutException) 
+      _errorMessage = 'timed out, wrong ip?';
+    else if (
+      error is PlatformException &&
+      error.code == 'connection_failure')
+      if (error.message == "USERAUTH fail") 
+        _errorMessage = 'wrong password';
+      else 
+        _errorMessage = 'connection error, wrong ip or port?';
+    else 
+      _errorMessage = error?.toString() ?? '';
+  }
+
   final _passphraseController = TextEditingController();
   final _adressController = TextEditingController();
   final _portController = TextEditingController();
@@ -26,6 +41,7 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
   String _passwordHintText = 'enter passphrase';
   String _passwordLabelText = 'passphrase';
   String _storedPassphrase;
+  String _errorMessage;
 
   @override
   void initState() {
@@ -69,11 +85,11 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
               Spacer(
                 flex: 5,
               ),
-              Text(error?.toString() ?? '',
+              Text(_errorMessage,
                   style: Theme.of(context)
                       .textTheme
                       .body1
-                      .apply(color: Colors.red)),
+                      .apply(color: Theme.of(context).errorColor)),
               Spacer(
                 flex: 5,
               ),
@@ -89,7 +105,7 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
                   suffixIcon: IconButton(
                     color: Theme.of(context).accentColor,
                     icon: Icon(
-                        _hidePassphrase ? Icons.lock_open : Icons.lock_outline),
+                        _hidePassphrase ? Icons.lock_outline : Icons.lock_open),
                     onPressed: () =>
                         setState(() => _hidePassphrase = !_hidePassphrase),
                   ),
@@ -109,7 +125,7 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
                         try {
                           Uri.parseIPv4Address(s);
                         } catch (e) {
-                          return "not a valid uri";
+                          return "not a valid adress";
                         }
                       },
                       keyboardType: TextInputType.number,
@@ -179,17 +195,21 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
               if (passphrase != null) {
                 await _storage.write(
                     key: passphrase_sercure_key, value: passphrase);
+
+                final cInfo = ConnectionInfo(
+                    host: ip,
+                    port: port,
+                    privatekey: sshkey,
+                    passphrase: passphrase);
+
+                client.connectionInfoSink.add(cInfo);
+                client.connectionEvents.add(ConnectionEvent.connect);
               }
-              
-
-              final cInfo = ConnectionInfo(
-                  host: ip,
-                  port: port,
-                  privatekey: sshkey,
-                  passphrase: passphrase);
-
-              client.connectionInfoSink.add(cInfo);
-              client.connectionEvents.add(ConnectionEvent.connect);
+            }
+            else {
+              setState(() {
+                    _errorMessage = '';
+              });
             }
           }),
     );

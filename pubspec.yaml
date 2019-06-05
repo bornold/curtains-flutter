@@ -27,4 +27,4 @@ flutter_icons:
 flutter:
   uses-material-design: true
   assets:
-    - assets/.ssh/id_rsa
+    - assets/.ssh/curt

@@ -55,13 +55,26 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    // final accentColor = Colors.limeAccent;
+    final accentColor = Colors.lime;
+    final highlightColor = Colors.amber;
     return MaterialApp(
       title: 'curtains',
       theme: ThemeData.dark().copyWith(
-        brightness: Brightness.dark,
-        textTheme: TextTheme(
-          title: TextStyle(color: Colors.grey, fontSize: 42),
+        accentColor: accentColor,
+        highlightColor: highlightColor,
+        textSelectionColor: accentColor,
+        cursorColor: accentColor,
+        textSelectionHandleColor: accentColor,
+        appBarTheme: AppBarTheme(
+          iconTheme: IconThemeData(color: accentColor),
+          textTheme: TextTheme(title: TextStyle(color: Colors.grey[100], fontSize: 24 ))
         ),
+        toggleableActiveColor: accentColor,
+        textTheme: TextTheme(
+          subhead: TextStyle(color: Colors.grey[400], fontSize: 18, ),
+        ),
+        floatingActionButtonTheme: FloatingActionButtonThemeData(backgroundColor: accentColor),
         cardTheme: CardTheme(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.only(
@@ -73,9 +86,11 @@ class _MyAppState extends State<MyApp> {
           ),
           elevation: 4,
           margin: EdgeInsets.fromLTRB(4, 4, 4, 0)),
+          
           buttonTheme: ButtonThemeData(
             minWidth: 36,
             padding: EdgeInsets.zero,
+            colorScheme: ColorScheme.fromSwatch(primarySwatch: accentColor),
           ),
           iconTheme: IconThemeData(size: 42.0),
       ),

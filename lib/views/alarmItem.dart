@@ -15,6 +15,7 @@ class AlarmItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final client = ClientProvider.of(context).client;
+    final theme = Theme.of(context);
     return StreamBuilder<CronJob>(
         stream: client.updatedAlarms.where((a) => a.uuid == initAlarm.uuid),
         initialData: initAlarm,
@@ -30,14 +31,14 @@ class AlarmItem extends StatelessWidget {
                         shape: StadiumBorder(),
                         padding: EdgeInsets.fromLTRB(0, 16, 0, 8),
                         child: Text('${alarm.time.format(context)}',
-                            style: Theme.of(context).textTheme.title),
+                            style: theme.textTheme.display2),
                         onPressed: () async {
                           TimeOfDay selectedTime = await showTimePicker(
                               initialTime: alarm.time,
                               context: context,
                               builder: (BuildContext context, Widget child) =>
                                   Theme(
-                                    data: Theme.of(context),
+                                    data: theme,
                                     child: child,
                                   ));
                           if (selectedTime != null) {
@@ -49,7 +50,10 @@ class AlarmItem extends StatelessWidget {
                     ),
                     Padding(
                       padding: const EdgeInsets.only(bottom: 8),
-                      child: Text(daysToSentence(alarm.days)),
+                      child: Text(
+                        daysToSentence(alarm.days), 
+                        softWrap: false, 
+                        overflow: TextOverflow.visible,),
                     ),
                   ]),
               children: [
@@ -79,12 +83,13 @@ class DayToggleBar extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: Day.values.map((d) {
           final active = alarm.days.contains(d);
-          return FlatButton(
+          return RaisedButton(
+            elevation: 8,
             shape: CircleBorder(),
             textColor:
                 active ? theme.primaryColorDark : theme.primaryColorLight,
             color: active
-                ? theme.primaryIconTheme.color
+                ? theme.accentColor
                 : theme.accentIconTheme.color,
             child: Text(
               dayToString(d),
