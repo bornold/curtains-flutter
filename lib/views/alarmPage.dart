@@ -34,11 +34,11 @@ class AddAlarmButton extends StatelessWidget {
         SizedBox(
           width: 56,
           height: 56,
-          child: StreamBuilder<SshState>(
-            stream: client.connection,
-            initialData: SshState.busy,
+          child: StreamBuilder<Availability>(
+            stream: client.availability,
+            initialData: Availability.busy,
             builder: (context, snapshot) {
-              final busy = snapshot.data == SshState.busy;
+              final busy = snapshot.data == Availability.busy;
               return busy ? 
                 CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(openColor),) :
                 FloatingActionButton(
@@ -72,7 +72,7 @@ class AlarmPage extends StatelessWidget {
             client.connectionEvents.add(ConnectionEvent.refresh);
             await Future.delayed(Duration(milliseconds: 50));
             await for (var value in client.connection) {
-              if (value == SshState.connected) {
+              if (value == ConnectionStatus.connected) {
                 return value;
               }
             }

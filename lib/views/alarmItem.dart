@@ -52,8 +52,7 @@ class AlarmItem extends StatelessWidget {
                       padding: const EdgeInsets.only(bottom: 8),
                       child: Text(
                         daysToSentence(alarm.days), 
-                        softWrap: false, 
-                        overflow: TextOverflow.visible,),
+                      ),
                     ),
                   ]),
               children: [

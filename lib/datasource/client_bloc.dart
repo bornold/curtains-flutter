@@ -17,7 +17,8 @@ class ClientProvider extends InheritedWidget {
 }
 abstract class ClientBloc { 
   Stream<List<CronJob>> get alarms;
-  Stream<SshState> get connection;
+  Stream<ConnectionStatus> get connection;
+  Stream<Availability> get availability;
   Stream<CronJob> get updatedAlarms;
   Sink<CronJob> get alarmSink;
   Sink<ConnectionEvent> get connectionEvents;
@@ -34,9 +35,14 @@ enum ConnectionEvent {
   open
 }
 
-enum SshState {
+enum ConnectionStatus {
   disconnected,
   connecting,
   connected,
+  loadning
+}
+
+enum Availability {
+  idle,
   busy
 }

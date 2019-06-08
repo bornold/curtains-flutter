@@ -106,19 +106,19 @@ class MainPage extends StatelessWidget {
   final String title = 'curtains';
   Widget build(BuildContext context) {
     final client = ClientProvider.of(context).client;
-    return StreamBuilder<SshState>(
+    return StreamBuilder<ConnectionStatus>(
         stream: client.connection,
-        initialData: SshState.connecting,
+        initialData: ConnectionStatus.connecting,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return ConnectionSettings(error: snapshot.error);
           }
           switch (snapshot.data) {
-            case SshState.connecting:
+            case ConnectionStatus.connecting:
               return Container(
                 decoration: BoxDecoration(color: Theme.of(context).scaffoldBackgroundColor), 
                 child: Center(child: CircularProgressIndicator()));
-            case SshState.disconnected:
+            case ConnectionStatus.disconnected:
               return ConnectionSettings();
             default:
               return AlarmPage();

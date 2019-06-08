@@ -11,19 +11,21 @@ import 'package:rxdart/rxdart.dart';
 class MockedClient extends ClientBloc {
 
   Stream<List<CronJob>> get alarms => alarmsSubject.stream;
-  Stream<SshState> get connection => connectionSubject.stream;
-  Stream<CronJob> get updatedAlarms => updateAlarmsSubject.stream; 
+  Stream<ConnectionStatus> get connection => connectionSubject.stream;
+  Stream<CronJob> get updatedAlarms => updateAlarmsSubject.stream;
+  Stream<Availability> get availability => availablitySubject.stream;
   Sink<CronJob> get alarmSink => alarmsSetChangeController.sink;
   Sink<ConnectionEvent> get connectionEvents => connectionController.sink;
   Sink<CronJob> get updateAlarmSink => updateAlarmsSubject.sink;
-  Sink<ConnectionInfo> get connectionInfoSink => _connectionInfoController.sink;
+  Sink<ConnectionInfo> get connectionInfoSink => connectionInfoController.sink;
 
   final alarmsSubject = BehaviorSubject<UnmodifiableListView<CronJob>>();
   final updateAlarmsSubject = PublishSubject<CronJob>();
-  final connectionSubject = BehaviorSubject<SshState>();
+  final availablitySubject = BehaviorSubject<Availability>();
+  final connectionSubject = BehaviorSubject<ConnectionStatus>();
   final connectionController = StreamController<ConnectionEvent>();
   final alarmsSetChangeController = StreamController<CronJob>();
-  final _connectionInfoController = StreamController<ConnectionInfo>();
+  final connectionInfoController = StreamController<ConnectionInfo>();
   
   var _alarms = <CronJob>[];
 
@@ -38,7 +40,8 @@ class MockedClient extends ClientBloc {
     connectionController.close();
     updateAlarmsSubject.close();
     alarmsSubject.close();
-    _connectionInfoController.close();
+    connectionInfoController.close();
+    availablitySubject.close();
   }
   List<CronJob> get _generateJobs => [
     new CronJob(
@@ -79,26 +82,26 @@ class MockedClient extends ClientBloc {
   void _onConnectionRequest(ConnectionEvent event) async {
     switch (event) {
       case ConnectionEvent.connect:
-        connectionSubject.add(SshState.connecting);
+        connectionSubject.add(ConnectionStatus.connecting);
         await Future.delayed(Duration(seconds: 2));
-        connectionSubject.add(SshState.connected);
-        connectionSubject.add(SshState.busy);
+        connectionSubject.add(ConnectionStatus.connected);
+        connectionSubject.add(ConnectionStatus.loadning);
         refresh();
-        connectionSubject.add(SshState.connected);
+        connectionSubject.add(ConnectionStatus.connected);
         break;
       case ConnectionEvent.disconnect:
-          connectionSubject.add(SshState.disconnected);
+          connectionSubject.add(ConnectionStatus.disconnected);
         break;
       case ConnectionEvent.open:
-          connectionSubject.add(SshState.busy);
-          await Future.delayed(Duration(seconds: 2));
-          connectionSubject.add(SshState.connected);
+        availablitySubject.add(Availability.busy);
+        await Future.delayed(Duration(seconds: 2));
+        availablitySubject.add(Availability.idle);
         break;
       case ConnectionEvent.refresh:
-        connectionSubject.add(SshState.busy);
+        connectionSubject.add(ConnectionStatus.loadning);
         await Future.delayed(Duration(seconds: 1));
         refresh();
-        connectionSubject.add(SshState.connected);
+        connectionSubject.add(ConnectionStatus.connected);
         break;
       default:
     }

@@ -5,13 +5,16 @@ import 'package:curtains/constants.dart';
 import 'package:curtains/datasource/client_bloc.dart';
 import 'package:curtains/models/connection_info.dart';
 import 'package:curtains/models/cronjob.dart';
+
 import 'package:flutter/foundation.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:ssh/ssh.dart';
 
+
 class Client extends ClientBloc {
   final _alarmsSubject = BehaviorSubject<UnmodifiableListView<CronJob>>();
-  final _connectionSubject = BehaviorSubject<SshState>();
+  final _connectionSubject = BehaviorSubject<ConnectionStatus>()..add(ConnectionStatus.disconnected);
+  final _availablitySubject = BehaviorSubject<Availability>()..add(Availability.idle);
   final _updateAlarmsSubject = StreamController<CronJob>.broadcast();
   final _connectionController = StreamController<ConnectionEvent>();
   final _alarmsSetChangeController = StreamController<CronJob>();
@@ -19,10 +22,11 @@ class Client extends ClientBloc {
 
   Stream<List<CronJob>> get alarms => _alarmsSubject.stream;
   Stream<CronJob> get updatedAlarms => _updateAlarmsSubject.stream;
-  Stream<SshState> get connection => _connectionSubject.stream;
+  Stream<ConnectionStatus> get connection => _connectionSubject.stream;
+  Stream<Availability> get availability => _availablitySubject.stream;
   Sink<CronJob> get alarmSink => _alarmsSetChangeController.sink;
-  Sink<ConnectionEvent> get connectionEvents => _connectionController.sink;
   Sink<CronJob> get updateAlarmSink => _updateAlarmsSubject.sink;
+  Sink<ConnectionEvent> get connectionEvents => _connectionController.sink;
   Sink<ConnectionInfo> get connectionInfoSink => _connectionInfoController.sink;
 
   final String connectionOk = "session_connected";
@@ -43,56 +47,14 @@ class Client extends ClientBloc {
     _connectionController.close();
     _updateAlarmsSubject.close();
     _connectionInfoController.close();
+    _availablitySubject.close();
     _client.disconnect();
   }
 
   void handelConnectionRequest(ConnectionEvent event) async {
-    debugPrint(event.toString());
-    if (_client == null) {
-      debugPrint('_client not set');
-      _connectionSubject.addError(Exception('must set connection info first'));
-      return;
-    }
-    try {
-      switch (event) {
-        case ConnectionEvent.connect:
-          _connectionSubject.add(SshState.connecting);
-          if (await _client.connect().timeout(Duration(seconds: 4)) == connectionOk)
-            _connectionSubject.add(SshState.connected);
-          else {
-            _connectionSubject.add(SshState.disconnected);
-            return;
-          }
-          debugPrint('connection success');
-          _connectionSubject.add(SshState.busy);
-          await refresh();
-          _connectionSubject.add(SshState.connected);
-          break;
-
-        case ConnectionEvent.disconnect:
-          _client?.disconnect();
-          _connectionSubject.add(SshState.disconnected);
-          break;
-
-        case ConnectionEvent.open:
-          _connectionSubject.add(SshState.busy);
-          await _client.execute(open_command);
-          _connectionSubject.add(SshState.connected);
-          break;
-
-        case ConnectionEvent.refresh:
-          _connectionSubject.add(SshState.busy);
-          await refresh();
-          _connectionSubject.add(SshState.connected);
-          break;
-      }
-    } catch (e) {
-      debugPrint(e.toString());
-      _connectionSubject.addError(e);
-    }
-  }
-
   Future refresh() async {
+    _connectionSubject.add(ConnectionStatus.loadning);
+
     final notCommentOrWhitspace =
         (String line) => !line.startsWith('#') && line.trim().isNotEmpty;
     debugPrint('fetching cronjobs');
@@ -106,6 +68,50 @@ class Client extends ClientBloc {
     alarms.forEach((c) => debugPrint(c.toString()));
     _alarms = alarms;
     _update();
+
+    _connectionSubject.add(ConnectionStatus.connected);
+  }
+
+    debugPrint(event.toString());
+    if (_client == null) {
+      debugPrint('_client not set');
+      _connectionSubject.addError(Exception('must set connection info first'));
+      return;
+    }
+    try {
+      switch (event) {
+
+        case ConnectionEvent.connect:
+          _connectionSubject.add(ConnectionStatus.connecting);
+          final connectionResult = await _client.connect().timeout(Duration(seconds: 4));
+          if (connectionResult != connectionOk) {
+            _connectionSubject.addError(Exception(connectionResult));
+            return;
+          }
+          debugPrint('connection success');
+          await refresh();
+          break;
+
+        case ConnectionEvent.disconnect:
+          _client?.disconnect();
+          _connectionSubject.add(ConnectionStatus.disconnected);
+          break;
+
+        case ConnectionEvent.open:
+          _availablitySubject.add(Availability.busy);
+          await _client.execute(open_command);
+          _availablitySubject.add(Availability.idle);
+          break;
+
+        case ConnectionEvent.refresh:
+          await refresh();
+          break;
+
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+      _connectionSubject.addError(e);
+    }
   }
 
   void handelNewAlarm(CronJob event) async {

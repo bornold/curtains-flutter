@@ -35,8 +35,7 @@ String daysToSentence(Iterable<Day> days) {
       if (dayChain.contains(Day.mon)) {
         var firstDay = Day.mon;
         for (final d in Day.values.reversed) {
-          if (dayChain.contains(d))
-          {
+          if (dayChain.contains(d)) {
             firstDay = d;
           }
           else if (firstDay == Day.sun && !dayChain.contains(Day.tue)) {
