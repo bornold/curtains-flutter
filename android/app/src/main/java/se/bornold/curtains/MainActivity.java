@@ -1,4 +1,4 @@
-package com.example.curtains;
+package se.bornold.curtains;
 
 import android.os.Bundle;
 import io.flutter.app.FlutterActivity;
