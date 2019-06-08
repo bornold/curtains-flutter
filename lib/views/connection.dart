@@ -51,8 +51,7 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
 
   void setPrefs() async {
     final prefs = await SharedPreferences.getInstance();
-    _adressController.text =
-        prefs.getString(adress_prefs_key) ?? '192.168.1.227';
+    _adressController.text = prefs.getString(adress_prefs_key) ?? '';
     _portController.text = '${prefs.getInt(port_prefs_key) ?? 22}';
     _storedPassphrase = await _storage.read(key: passphrase_sercure_key);
     if (_storedPassphrase != null) {
@@ -128,7 +127,7 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
                           return "not a valid adress";
                         }
                       },
-                      keyboardType: TextInputType.number,
+                      keyboardType: TextInputType.numberWithOptions(signed: true),
                       controller: _adressController,
                       decoration: InputDecoration(labelText: 'adress'),
                     ),

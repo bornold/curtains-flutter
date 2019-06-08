@@ -55,7 +55,6 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    // final accentColor = Colors.limeAccent;
     final accentColor = Colors.lime;
     final highlightColor = Colors.amber;
     return MaterialApp(

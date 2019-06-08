@@ -70,10 +70,10 @@ class AlarmPage extends StatelessWidget {
       body: RefreshIndicator(
           onRefresh: () async {
             client.connectionEvents.add(ConnectionEvent.refresh);
-            await Future.delayed(Duration(milliseconds: 50));
+            await Future.delayed(Duration(milliseconds: 100));
             await for (var value in client.connection) {
               if (value == ConnectionStatus.connected) {
-                return value;
+                return;
               }
             }
           },
