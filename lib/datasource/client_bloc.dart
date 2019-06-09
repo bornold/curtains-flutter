@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:curtains/models/connection_info.dart';
-import 'package:curtains/models/cronjob.dart';
+import '../models/connection_info.dart';
+import '../models/cronjob.dart';
 import 'package:flutter/material.dart';
 
 class ClientProvider extends InheritedWidget {
@@ -15,7 +15,8 @@ class ClientProvider extends InheritedWidget {
   static ClientProvider of(BuildContext context) =>
       context.inheritFromWidgetOfExactType(ClientProvider);
 }
-abstract class ClientBloc { 
+
+abstract class ClientBloc {
   Stream<List<CronJob>> get alarms;
   Stream<ConnectionStatus> get connection;
   Stream<Availability> get availability;
@@ -28,21 +29,8 @@ abstract class ClientBloc {
   void dispose();
 }
 
-enum ConnectionEvent {
-  connect,
-  disconnect,
-  refresh,
-  open
-}
+enum ConnectionEvent { connect, disconnect, refresh, open }
 
-enum ConnectionStatus {
-  disconnected,
-  connecting,
-  connected,
-  loadning
-}
+enum ConnectionStatus { disconnected, connecting, connected, loadning }
 
-enum Availability {
-  idle,
-  busy
-}
+enum Availability { idle, busy }

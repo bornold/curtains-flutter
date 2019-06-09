@@ -1,9 +1,9 @@
-import 'package:curtains/constants.dart';
-import 'package:curtains/datasource/client.dart';
-import 'package:curtains/datasource/client_bloc.dart';
-import 'package:curtains/models/connection_info.dart';
-import 'package:curtains/views/alarmPage.dart';
-import 'package:curtains/views/connection.dart';
+import 'constants.dart';
+import 'datasource/client.dart';
+import 'datasource/client_bloc.dart';
+import 'models/connection_info.dart';
+import 'views/alarmPage.dart';
+import 'views/connection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -28,19 +28,19 @@ class _MyAppState extends State<MyApp> {
   void getConnectionInfo() async {
     final storage = FlutterSecureStorage();
     final prefs = await SharedPreferences.getInstance();
-    if  (prefs.getBool(autoconnect_prefs_key) ?? false) {
+    if (prefs.getBool(autoconnect_prefs_key) ?? false) {
       final ip = prefs.getString(adress_prefs_key);
       final port = prefs.getInt(port_prefs_key);
       final passphrase = await storage.read(key: passphrase_sercure_key);
 
-      if (ip != null && 
-        port != null && 
-        passphrase != null) {
-          final sshkey = await DefaultAssetBundle.of(context).loadString(private_key_path);
-          final cInfo = ConnectionInfo(host: ip, port: port, privatekey: sshkey, passphrase: passphrase);
-          _client.connectionInfoSink.add(cInfo);
-          _client.connectionEvents.add(ConnectionEvent.connect);
-          return;
+      if (ip != null && port != null && passphrase != null) {
+        final sshkey =
+            await DefaultAssetBundle.of(context).loadString(private_key_path);
+        final cInfo = ConnectionInfo(
+            host: ip, port: port, privatekey: sshkey, passphrase: passphrase);
+        _client.connectionInfoSink.add(cInfo);
+        _client.connectionEvents.add(ConnectionEvent.connect);
+        return;
       }
     }
 
@@ -51,7 +51,7 @@ class _MyAppState extends State<MyApp> {
   void dispose() {
     _client.dispose();
     super.dispose();
-  } 
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,39 +66,42 @@ class _MyAppState extends State<MyApp> {
         cursorColor: accentColor,
         textSelectionHandleColor: accentColor,
         appBarTheme: AppBarTheme(
-          iconTheme: IconThemeData(color: accentColor),
-          textTheme: TextTheme(title: TextStyle(color: Colors.grey[100], fontSize: 24 ))
-        ),
+            iconTheme: IconThemeData(color: accentColor),
+            textTheme: TextTheme(
+                title: TextStyle(color: Colors.grey[100], fontSize: 24))),
         toggleableActiveColor: accentColor,
         textTheme: TextTheme(
-          subhead: TextStyle(color: Colors.grey[400], fontSize: 18, ),
+          subhead: TextStyle(
+            color: Colors.grey[400],
+            fontSize: 18,
+          ),
         ),
-        floatingActionButtonTheme: FloatingActionButtonThemeData(backgroundColor: accentColor),
+        floatingActionButtonTheme:
+            FloatingActionButtonThemeData(backgroundColor: accentColor),
         cardTheme: CardTheme(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(16.0),
-              topRight: Radius.circular(16.0),
-              bottomLeft: Radius.circular(4.0),
-              bottomRight: Radius.circular(4.0),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(16.0),
+                topRight: Radius.circular(16.0),
+                bottomLeft: Radius.circular(4.0),
+                bottomRight: Radius.circular(4.0),
+              ),
             ),
-          ),
-          elevation: 4,
-          margin: EdgeInsets.fromLTRB(4, 4, 4, 0)),
-          
-          buttonTheme: ButtonThemeData(
-            minWidth: 36,
-            padding: EdgeInsets.zero,
-            colorScheme: ColorScheme.fromSwatch(primarySwatch: accentColor),
-          ),
-          iconTheme: IconThemeData(size: 42.0),
+            elevation: 4,
+            margin: EdgeInsets.fromLTRB(4, 4, 4, 0)),
+        buttonTheme: ButtonThemeData(
+          minWidth: 36,
+          padding: EdgeInsets.zero,
+          colorScheme: ColorScheme.fromSwatch(primarySwatch: accentColor),
+        ),
+        iconTheme: IconThemeData(size: 42.0),
       ),
       home: ClientProvider(
         client: _client,
         child: MainPage(),
       ),
     );
-  } 
+  }
 }
 
 class MainPage extends StatelessWidget {
@@ -115,8 +118,9 @@ class MainPage extends StatelessWidget {
           switch (snapshot.data) {
             case ConnectionStatus.connecting:
               return Container(
-                decoration: BoxDecoration(color: Theme.of(context).scaffoldBackgroundColor), 
-                child: Center(child: CircularProgressIndicator()));
+                  decoration: BoxDecoration(
+                      color: Theme.of(context).scaffoldBackgroundColor),
+                  child: Center(child: CircularProgressIndicator()));
             case ConnectionStatus.disconnected:
               return ConnectionSettings();
             default:

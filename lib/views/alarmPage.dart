@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:curtains/datasource/client_bloc.dart';
-import 'package:curtains/models/cronjob.dart';
-import 'package:curtains/views/alarmItem.dart';
+import '../datasource/client_bloc.dart';
+import '../models/cronjob.dart';
+import '../views/alarmItem.dart';
 import 'package:flutter/material.dart';
 
 class AddAlarmButton extends StatelessWidget {
@@ -14,16 +14,16 @@ class AddAlarmButton extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: <Widget>[
-        FloatingActionButton( 
+        FloatingActionButton(
           onPressed: () async {
             TimeOfDay selectedTime = await showTimePicker(
-                initialTime: TimeOfDay.fromDateTime(DateTime.now().add( Duration(minutes: 1))) ,
+                initialTime: TimeOfDay.fromDateTime(
+                    DateTime.now().add(Duration(minutes: 1))),
                 context: context,
                 builder: (context, child) => Theme(
                       data: Theme.of(context),
                       child: child,
-                    )
-              );
+                    ));
             if (selectedTime != null) {
               client.alarmSink.add(CronJob.everyday(time: selectedTime));
             }
@@ -35,20 +35,22 @@ class AddAlarmButton extends StatelessWidget {
           width: 56,
           height: 56,
           child: StreamBuilder<Availability>(
-            stream: client.availability,
-            initialData: Availability.busy,
-            builder: (context, snapshot) {
-              final busy = snapshot.data == Availability.busy;
-              return busy ? 
-                CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(openColor),) :
-                FloatingActionButton(
-                  backgroundColor: openColor,
-                  onPressed: () => client.connectionEvents.add(ConnectionEvent.open),
-                  tooltip: 'open curtains',
-                  child: Icon(Icons.flare),
-                );
-            }
-          ),
+              stream: client.availability,
+              initialData: Availability.busy,
+              builder: (context, snapshot) {
+                final busy = snapshot.data == Availability.busy;
+                return busy
+                    ? CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(openColor),
+                      )
+                    : FloatingActionButton(
+                        backgroundColor: openColor,
+                        onPressed: () =>
+                            client.connectionEvents.add(ConnectionEvent.open),
+                        tooltip: 'open curtains',
+                        child: Icon(Icons.flare),
+                      );
+              }),
         ),
       ],
     );
@@ -79,14 +81,13 @@ class AlarmPage extends StatelessWidget {
           },
           child: StreamBuilder<UnmodifiableListView<CronJob>>(
               stream: client.alarms,
-              builder: (context, snapshot) => 
-                snapshot.hasData ? 
-                  ListView(
-                    children: snapshot.data.map<Widget>(
-                      (a) => 
-                        Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Dismissible(
+              builder: (context, snapshot) => snapshot.hasData
+                  ? ListView(
+                      children: snapshot.data
+                          .map<Widget>(
+                      (a) => Padding(
+                            padding: EdgeInsets.all(8.0),
+                            child: Dismissible(
                               key: Key(a.uuid),
                               resizeDuration: Duration(milliseconds: 1000),
                               direction: DismissDirection.startToEnd,
@@ -110,9 +111,7 @@ class AlarmPage extends StatelessWidget {
                         height: 80,
                       )
                     ]).toList())
-                  : Center(child: CircularProgressIndicator())
-          )
-        ),
+                  : Center(child: CircularProgressIndicator()))),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: AddAlarmButton(),
     );

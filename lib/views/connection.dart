@@ -1,12 +1,13 @@
 import 'dart:async';
 
-import 'package:curtains/constants.dart';
-import 'package:curtains/datasource/client_bloc.dart';
-import 'package:curtains/models/connection_info.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+import '../constants.dart';
+import '../datasource/client_bloc.dart';
+import '../models/connection_info.dart';
 
 class ConnectionSettings extends StatefulWidget {
   ConnectionSettings({this.error});
@@ -18,16 +19,15 @@ class ConnectionSettings extends StatefulWidget {
 
 class _ConnectionSettingsState extends State<ConnectionSettings> {
   _ConnectionSettingsState({Exception error}) {
-    if (error is TimeoutException) 
+    if (error is TimeoutException)
       _errorMessage = 'timed out, wrong ip?';
-    else if (
-      error is PlatformException &&
-      error.code == 'connection_failure')
-      if (error.message == "USERAUTH fail") 
-        _errorMessage = 'wrong password';
-      else 
-        _errorMessage = 'connection error, wrong ip or port?';
-    else 
+    else if (error is PlatformException &&
+        error.code ==
+            'connection_failure') if (error.message == "USERAUTH fail")
+      _errorMessage = 'wrong password';
+    else
+      _errorMessage = 'connection error, wrong ip or port?';
+    else
       _errorMessage = error?.toString() ?? '';
   }
 
@@ -127,7 +127,8 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
                           return "not a valid adress";
                         }
                       },
-                      keyboardType: TextInputType.numberWithOptions(signed: true),
+                      keyboardType:
+                          TextInputType.numberWithOptions(signed: true),
                       controller: _adressController,
                       decoration: InputDecoration(labelText: 'adress'),
                     ),
@@ -204,10 +205,9 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
                 client.connectionInfoSink.add(cInfo);
                 client.connectionEvents.add(ConnectionEvent.connect);
               }
-            }
-            else {
+            } else {
               setState(() {
-                    _errorMessage = '';
+                _errorMessage = '';
               });
             }
           }),

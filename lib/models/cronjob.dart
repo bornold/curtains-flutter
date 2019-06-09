@@ -1,36 +1,46 @@
 import 'dart:collection';
 
-import 'package:curtains/constants.dart';
-import 'package:curtains/helper/dayToString.dart';
+import '../constants.dart';
+import '../helper/dayToString.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 class CronJob implements Comparable<CronJob> {
-  
   final String command;
   final TimeOfDay time;
   final UnmodifiableListView<Day> days;
   String get uuid => _uuid;
   String _uuid;
 
-  CronJob({@required this.time, @required Set<Day> days, this.command = open_command, String uuid})
-  : _uuid = uuid ?? Uuid().v4(),
-    days = UnmodifiableListView<Day>(days),
-    assert(command != null),
-    assert(time.hour < 24),
-    assert(time.minute < 60),
-    assert(days != null);
-  
-  CronJob.everyday({@required TimeOfDay time}) : this(time: time, days: Day.values.toSet());
-  CronJob.clone({@required CronJob from, TimeOfDay newTime,  Set<Day> newDays, String newCommand}) 
-  : this(
-      time: newTime ?? TimeOfDay(hour: from.time.hour, minute: from.time.minute),
-      days: newDays ?? from.days.toSet(), 
-      command: newCommand ?? from.command, 
-      uuid: from.uuid);
-     
+  CronJob(
+      {@required this.time,
+      @required Set<Day> days,
+      this.command = open_command,
+      String uuid})
+      : _uuid = uuid ?? Uuid().v4(),
+        days = UnmodifiableListView<Day>(days),
+        assert(command != null),
+        assert(time.hour < 24),
+        assert(time.minute < 60),
+        assert(days != null);
+
+  CronJob.everyday({@required TimeOfDay time})
+      : this(time: time, days: Day.values.toSet());
+  CronJob.clone(
+      {@required CronJob from,
+      TimeOfDay newTime,
+      Set<Day> newDays,
+      String newCommand})
+      : this(
+            time: newTime ??
+                TimeOfDay(hour: from.time.hour, minute: from.time.minute),
+            days: newDays ?? from.days.toSet(),
+            command: newCommand ?? from.command,
+            uuid: from.uuid);
+
   factory CronJob.parse(String raw) {
-    Day _parseDay(String dayStr) => Day.values.firstWhere((e) => e.toString() == 'Day.$dayStr', orElse: null);
+    Day _parseDay(String dayStr) => Day.values
+        .firstWhere((e) => e.toString() == 'Day.$dayStr', orElse: null);
     int uuidPart = raw.lastIndexOf('#');
     String uuid;
     if (uuidPart > 0) {
@@ -42,20 +52,20 @@ class CronJob implements Comparable<CronJob> {
     int hour = int.tryParse(splitted.removeAt(0)) ?? 0;
     splitted.removeRange(0, 2);
     final dayPart = splitted.removeAt(0);
-    final days = dayPart == '*' ? Set<Day>.identity() 
-        : dayPart
-            .split(',')
-            .map(_parseDay)
-            .toSet();
-   
+    final days = dayPart == '*'
+        ? Set<Day>.identity()
+        : dayPart.split(',').map(_parseDay).toSet();
+
     final command = splitted.join(' ');
     final time = TimeOfDay(hour: hour, minute: min);
-    return CronJob( days: days, time: time, command: command, uuid: uuid);
+    return CronJob(days: days, time: time, command: command, uuid: uuid);
   }
 
   @override
   String toString() => raw;
-  String get raw => "${time.minute} ${time.hour} * * ${days.isEmpty ? '*' : daysToString(days)} $command #$uuid".trim();
+  String get raw =>
+      "${time.minute} ${time.hour} * * ${days.isEmpty ? '*' : daysToString(days)} $command #$uuid"
+          .trim();
 
   @override
   int compareTo(CronJob other) {

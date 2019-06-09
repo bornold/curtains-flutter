@@ -1,20 +1,21 @@
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:curtains/constants.dart';
-import 'package:curtains/datasource/client_bloc.dart';
-import 'package:curtains/models/connection_info.dart';
-import 'package:curtains/models/cronjob.dart';
+import '../constants.dart';
+import '../datasource/client_bloc.dart';
+import '../models/connection_info.dart';
+import '../models/cronjob.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:ssh/ssh.dart';
 
-
 class Client extends ClientBloc {
   final _alarmsSubject = BehaviorSubject<UnmodifiableListView<CronJob>>();
-  final _connectionSubject = BehaviorSubject<ConnectionStatus>()..add(ConnectionStatus.disconnected);
-  final _availablitySubject = BehaviorSubject<Availability>()..add(Availability.idle);
+  final _connectionSubject = BehaviorSubject<ConnectionStatus>()
+    ..add(ConnectionStatus.disconnected);
+  final _availablitySubject = BehaviorSubject<Availability>()
+    ..add(Availability.idle);
   final _updateAlarmsSubject = StreamController<CronJob>.broadcast();
   final _connectionController = StreamController<ConnectionEvent>();
   final _alarmsSetChangeController = StreamController<CronJob>();
@@ -52,25 +53,25 @@ class Client extends ClientBloc {
   }
 
   void handelConnectionRequest(ConnectionEvent event) async {
-  Future refresh() async {
-    _connectionSubject.add(ConnectionStatus.loadning);
+    Future refresh() async {
+      _connectionSubject.add(ConnectionStatus.loadning);
 
-    final notCommentOrWhitspace =
-        (String line) => !line.startsWith('#') && line.trim().isNotEmpty;
-    debugPrint('fetching cronjobs');
-    final String res = await _client.execute("crontab -l");
-    debugPrint('cronjobs result: $res');
-    final alarms = res
-        .split(RegExp(r'[\n?\r]'))
-        .where(notCommentOrWhitspace)
-        .map((cronjob) => CronJob.parse(cronjob))
-        .toList();
-    alarms.forEach((c) => debugPrint(c.toString()));
-    _alarms = alarms;
-    _update();
+      final notCommentOrWhitspace =
+          (String line) => !line.startsWith('#') && line.trim().isNotEmpty;
+      debugPrint('fetching cronjobs');
+      final String res = await _client.execute("crontab -l");
+      debugPrint('cronjobs result: $res');
+      final alarms = res
+          .split(RegExp(r'[\n?\r]'))
+          .where(notCommentOrWhitspace)
+          .map((cronjob) => CronJob.parse(cronjob))
+          .toList();
+      alarms.forEach((c) => debugPrint(c.toString()));
+      _alarms = alarms;
+      _update();
 
-    _connectionSubject.add(ConnectionStatus.connected);
-  }
+      _connectionSubject.add(ConnectionStatus.connected);
+    }
 
     debugPrint(event.toString());
     if (_client == null) {
@@ -80,10 +81,10 @@ class Client extends ClientBloc {
     }
     try {
       switch (event) {
-
         case ConnectionEvent.connect:
           _connectionSubject.add(ConnectionStatus.connecting);
-          final connectionResult = await _client.connect().timeout(Duration(seconds: 4));
+          final connectionResult =
+              await _client.connect().timeout(Duration(seconds: 4));
           if (connectionResult != connectionOk) {
             _connectionSubject.addError(Exception(connectionResult));
             return;
@@ -106,7 +107,6 @@ class Client extends ClientBloc {
         case ConnectionEvent.refresh:
           await refresh();
           break;
-
       }
     } catch (e) {
       debugPrint(e.toString());
