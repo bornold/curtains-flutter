@@ -120,15 +120,12 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
                     flex: 30,
                     child: TextFormField(
                       validator: (s) {
-                        if (s.isEmpty) return "must enter adress";
-                        try {
-                          Uri.parseIPv4Address(s);
-                        } catch (e) {
-                          return "not a valid adress";
-                        }
+                        if (s.isEmpty)
+                          return "must enter adress";
+                        if (Uri.tryParse(s) == null)
+                          return "not a valid adress";                        
                       },
-                      keyboardType:
-                          TextInputType.numberWithOptions(signed: true),
+                      keyboardType: TextInputType.url,
                       controller: _adressController,
                       decoration: InputDecoration(labelText: 'adress'),
                     ),
@@ -142,9 +139,7 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
                       validator: (s) {
                         if (s.isEmpty) return "must enter port";
                         int port = int.tryParse(s) ?? -1;
-                        if (port < 0 || port > 65535) {
-                          return "not a valid port";
-                        }
+                        if (port < 0 || port > 65535) return "not a valid port";
                       },
                       keyboardType: TextInputType.number,
                       controller: _portController,
