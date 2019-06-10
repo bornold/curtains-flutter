@@ -82,7 +82,7 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Spacer(
-                flex: 5,
+                flex: 4,
               ),
               Text(_errorMessage,
                   style: Theme.of(context)
@@ -90,29 +90,7 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
                       .body1
                       .apply(color: Theme.of(context).errorColor)),
               Spacer(
-                flex: 5,
-              ),
-              TextFormField(
-                validator: (s) {
-                  if (s.isEmpty && _storedPassphrase == null)
-                    return 'must enter passphrase';
-                },
-                obscureText: _hidePassphrase,
-                controller: _passphraseController,
-                decoration: InputDecoration(
-                  hintText: _passwordHintText,
-                  suffixIcon: IconButton(
-                    color: Theme.of(context).accentColor,
-                    icon: Icon(
-                        _hidePassphrase ? Icons.lock_outline : Icons.lock_open),
-                    onPressed: () =>
-                        setState(() => _hidePassphrase = !_hidePassphrase),
-                  ),
-                  labelText: _passwordLabelText,
-                ),
-              ),
-              Spacer(
-                flex: 1,
+                flex: 4,
               ),
               Row(
                 children: <Widget>[
@@ -151,6 +129,28 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
               Spacer(
                 flex: 1,
               ),
+              TextFormField(
+                validator: (s) {
+                  if (s.isEmpty && _storedPassphrase == null)
+                    return 'must enter passphrase';
+                },
+                obscureText: _hidePassphrase,
+                controller: _passphraseController,
+                decoration: InputDecoration(
+                  hintText: _passwordHintText,
+                  suffixIcon: IconButton(
+                    color: Theme.of(context).accentColor,
+                    icon: Icon(
+                        _hidePassphrase ? Icons.lock_outline : Icons.lock_open),
+                    onPressed: () =>
+                        setState(() => _hidePassphrase = !_hidePassphrase),
+                  ),
+                  labelText: _passwordLabelText,
+                ),
+              ),
+              Spacer(
+                flex: 1,
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
@@ -164,7 +164,10 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
                 ],
               ),
               Spacer(
-                flex: 14,
+                flex: 8,
+              ),
+              Container(
+                height: 60,
               )
             ],
           ),
