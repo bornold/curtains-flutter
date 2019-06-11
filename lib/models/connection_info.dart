@@ -15,4 +15,6 @@ class ConnectionInfo {
         assert(port < 65535);
   final String user, host, privatekey, passphrase;
   final int port;
+  @override
+  String toString() => '$user@$host:$port';
 }

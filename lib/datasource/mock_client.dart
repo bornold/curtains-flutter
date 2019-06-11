@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 
 class MockedClient extends ClientBloc {
-  Stream<List<CronJob>> get alarms => alarmsSubject.stream;
+  Stream<List<CronJob>> get alarmStream => alarmsSubject.stream;
   Stream<ConnectionStatus> get connection => connectionSubject.stream;
   Stream<CronJob> get updatedAlarms => updateAlarmsSubject.stream;
   Stream<Availability> get availability => availablitySubject.stream;

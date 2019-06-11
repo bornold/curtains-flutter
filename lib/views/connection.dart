@@ -21,12 +21,14 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
   _ConnectionSettingsState({Exception error}) {
     if (error is TimeoutException)
       _errorMessage = 'timed out, wrong ip?';
-    else if (error is PlatformException &&
-        error.code ==
-            'connection_failure') if (error.message == "USERAUTH fail")
-      _errorMessage = 'wrong password';
-    else
-      _errorMessage = 'connection error, wrong ip or port?';
+    else if (error is PlatformException && error.code == connectionFailure) {
+      if (error.message == errorAuth)
+        _errorMessage = 'wrong password';
+      else if (error.message == errorSessionDown)
+        _errorMessage = 'lost connection';
+      else
+        _errorMessage = 'connection error, wrong ip or port?';
+    }
     else
       _errorMessage = error?.toString() ?? '';
   }
@@ -99,9 +101,9 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
                     child: TextFormField(
                       validator: (s) {
                         if (s.isEmpty)
-                          return "must enter adress";
+                          return 'must enter adress';
                         if (Uri.tryParse(s) == null)
-                          return "not a valid adress";                        
+                          return 'not a valid adress';                        
                       },
                       keyboardType: TextInputType.url,
                       controller: _adressController,
@@ -115,9 +117,9 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
                     flex: 12,
                     child: TextFormField(
                       validator: (s) {
-                        if (s.isEmpty) return "must enter port";
+                        if (s.isEmpty) return 'must enter port';
                         int port = int.tryParse(s) ?? -1;
-                        if (port < 0 || port > 65535) return "not a valid port";
+                        if (port < 0 || port > 65535) return 'not a valid port';
                       },
                       keyboardType: TextInputType.number,
                       controller: _portController,

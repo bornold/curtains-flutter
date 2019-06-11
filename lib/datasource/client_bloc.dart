@@ -17,7 +17,7 @@ class ClientProvider extends InheritedWidget {
 }
 
 abstract class ClientBloc {
-  Stream<List<CronJob>> get alarms;
+  Stream<List<CronJob>> get alarmStream;
   Stream<ConnectionStatus> get connection;
   Stream<Availability> get availability;
   Stream<CronJob> get updatedAlarms;

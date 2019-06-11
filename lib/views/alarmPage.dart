@@ -80,7 +80,7 @@ class AlarmPage extends StatelessWidget {
             }
           },
           child: StreamBuilder<UnmodifiableListView<CronJob>>(
-              stream: client.alarms,
+              stream: client.alarmStream,
               builder: (context, snapshot) => snapshot.hasData
                   ? ListView(
                       children: snapshot.data
