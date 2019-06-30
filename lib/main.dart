@@ -1,3 +1,5 @@
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+
 import 'constants.dart';
 import 'datasource/client.dart';
 import 'datasource/client_bloc.dart';
@@ -9,14 +11,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-void main() => runApp(MyApp());
+void main() {
+  Crashlytics.instance.enableInDevMode = true;
 
-class MyApp extends StatefulWidget {
-  @override
-  _MyAppState createState() => _MyAppState();
+  // Pass all uncaught errors to Crashlytics.
+  FlutterError.onError = (FlutterErrorDetails details) {
+    Crashlytics.instance.onError(details);
+  };
+  runApp(CurtainsApp());
 }
 
-class _MyAppState extends State<MyApp> {
+class CurtainsApp extends StatefulWidget {
+  @override
+  _CurtainsAppState createState() => _CurtainsAppState();
+}
+
+class _CurtainsAppState extends State<CurtainsApp> {
   final _client = Client();
 
   @override

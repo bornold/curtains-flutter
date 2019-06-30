@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>533984705195-2qj2642kgri0bqj06sg0soejhjpmd1e9.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.533984705195-2qj2642kgri0bqj06sg0soejhjpmd1e9</string>
+	<key>API_KEY</key>
+	<string>AIzaSyDlOikTpFKB2G0xIPVc30dHksomJMhz2CU</string>
+	<key>GCM_SENDER_ID</key>
+	<string>533984705195</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>se.bornold.curtains</string>
+	<key>PROJECT_ID</key>
+	<string>curtains-flutter</string>
+	<key>STORAGE_BUCKET</key>
+	<string>curtains-flutter.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:533984705195:ios:6c2d6c346849833a</string>
+	<key>DATABASE_URL</key>
+	<string>https://curtains-flutter.firebaseio.com</string>
+</dict>
+</plist>

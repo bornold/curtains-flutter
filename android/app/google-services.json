@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "533984705195",
+    "firebase_url": "https://curtains-flutter.firebaseio.com",
+    "project_id": "curtains-flutter",
+    "storage_bucket": "curtains-flutter.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:533984705195:android:6c2d6c346849833a",
+        "android_client_info": {
+          "package_name": "se.bornold.curtains"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "533984705195-guuo2j76gfnknl4kedm8crrlmuq8occu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBf2jEqb0D7Y_eTpp7_vkzB0-VL5ZRp1B8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "533984705195-guuo2j76gfnknl4kedm8crrlmuq8occu.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "533984705195-2qj2642kgri0bqj06sg0soejhjpmd1e9.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "se.bornold.curtains"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
