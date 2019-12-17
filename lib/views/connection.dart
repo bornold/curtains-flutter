@@ -103,7 +103,8 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
                         if (s.isEmpty)
                           return 'must enter adress';
                         if (Uri.tryParse(s) == null)
-                          return 'not a valid adress';                        
+                          return 'not a valid adress';                
+                        return null;       
                       },
                       keyboardType: TextInputType.url,
                       controller: _adressController,
@@ -120,6 +121,7 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
                         if (s.isEmpty) return 'must enter port';
                         int port = int.tryParse(s) ?? -1;
                         if (port < 0 || port > 65535) return 'not a valid port';
+                        return null;       
                       },
                       keyboardType: TextInputType.number,
                       controller: _portController,
@@ -135,6 +137,7 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
                 validator: (s) {
                   if (s.isEmpty && _storedPassphrase == null)
                     return 'must enter passphrase';
+                  return null;
                 },
                 obscureText: _hidePassphrase,
                 controller: _passphraseController,
