@@ -13,7 +13,7 @@ class ClientProvider extends InheritedWidget {
   bool updateShouldNotify(ClientProvider oldWidget) => true;
 
   static ClientProvider of(BuildContext context) =>
-      context.inheritFromWidgetOfExactType(ClientProvider);
+      context.dependOnInheritedWidgetOfExactType<ClientProvider>();
 }
 
 abstract class ClientBloc {

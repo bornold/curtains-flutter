@@ -1,5 +1,3 @@
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-
 import 'constants.dart';
 import 'datasource/client.dart';
 import 'datasource/client_bloc.dart';
@@ -12,12 +10,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  Crashlytics.instance.enableInDevMode = true;
-
-  // Pass all uncaught errors to Crashlytics.
-  FlutterError.onError = (FlutterErrorDetails details) {
-    Crashlytics.instance.onError(details);
-  };
   runApp(CurtainsApp());
 }
 
