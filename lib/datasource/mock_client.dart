@@ -10,7 +10,7 @@ import 'package:flutter/material.dart';
 
 class MockedClient extends ClientBloc {
   Stream<List<CronJob>> get alarmStream => alarmsSubject.stream;
-  Stream<ConnectionStatus> get connection => connectionSubject.stream;
+  Stream<ConnectionStatus> get connectionStatus => connectionSubject.stream;
   Stream<CronJob> get updatedAlarms => updateAlarmsSubject.stream;
   Stream<Availability> get availability => availablitySubject.stream;
   Sink<CronJob> get alarmSink => alarmsSetChangeController.sink;

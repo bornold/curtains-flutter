@@ -10,14 +10,16 @@ import '../models/connection_info.dart';
 
 class ConnectionSettings extends StatefulWidget {
   ConnectionSettings({this.error});
-  final Exception error;
+  final Object error;
   @override
   _ConnectionSettingsState createState() =>
       _ConnectionSettingsState(error: error);
 }
 
 class _ConnectionSettingsState extends State<ConnectionSettings> {
-  _ConnectionSettingsState({Exception error}) {
+  _ConnectionSettingsState({
+    Object error,
+  }) {
     if (error is TimeoutException)
       _errorMessage = 'timed out, wrong ip?';
     else if (error is PlatformException && error.code == connectionFailure) {
@@ -37,7 +39,6 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
   bool _hidePassphrase = true;
   bool autoconnect = true;
   final _formKey = GlobalKey<FormState>();
-  // final _storage = FlutterSecureStorage();
   String _passwordHintText = 'enter passphrase';
   String _passwordLabelText = 'passphrase';
   String _storedPassphrase;
@@ -177,39 +178,38 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: FloatingActionButton(
-          child: Icon(Icons.phonelink),
-          onPressed: () async {
-            if (_formKey.currentState.validate()) {
-              final ip = _adressController.text;
-              final port = int.tryParse(_portController.text) ?? 22;
-              final inputPassphrase = _passphraseController.text;
-              final passphrase =
-                  inputPassphrase.isEmpty ? _storedPassphrase : inputPassphrase;
-              final sshkey = await DefaultAssetBundle.of(context)
-                  .loadString(private_key_path);
+        child: Icon(Icons.phonelink),
+        onPressed: () async {
+          if (_formKey.currentState.validate()) {
+            final ip = _adressController.text;
+            final port = int.tryParse(_portController.text) ?? 22;
+            final inputPassphrase = _passphraseController.text;
+            final passphrase =
+                inputPassphrase.isEmpty ? _storedPassphrase : inputPassphrase;
+            final sshkey = await DefaultAssetBundle.of(context)
+                .loadString(private_key_path);
 
-              final prefs = await SharedPreferences.getInstance();
-              prefs.setInt(port_prefs_key, port);
-              prefs.setString(adress_prefs_key, ip);
-              prefs.setBool(autoconnect_prefs_key, autoconnect);
-              if (passphrase != null) {
-                prefs.setString(passphrase_sercure_key, passphrase);
+            final prefs = await SharedPreferences.getInstance();
+            prefs.setInt(port_prefs_key, port);
+            prefs.setString(adress_prefs_key, ip);
+            prefs.setBool(autoconnect_prefs_key, autoconnect);
+            if (passphrase != null) {
+              prefs.setString(passphrase_sercure_key, passphrase);
 
-                final cInfo = ConnectionInfo(
-                    host: ip,
-                    port: port,
-                    privatekey: sshkey,
-                    passphrase: passphrase);
+              final cInfo = SSHConnectionInfo(
+                  host: ip,
+                  port: port,
+                  privatekey: sshkey,
+                  passphrase: passphrase);
 
-                client.connectionInfoSink.add(cInfo);
-                client.connectionEvents.add(ConnectionEvent.connect);
-              }
-            } else {
-              setState(() {
-                _errorMessage = '';
-              });
+              client.connectionInfoSink.add(cInfo);
+              client.connectionEvents.add(ConnectionEvent.connect);
             }
-          }),
+          } else {
+            setState(() => _errorMessage = '');
+          }
+        },
+      ),
     );
   }
 }

@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import 'constants.dart';
 import 'datasource/client.dart';
 import 'datasource/client_bloc.dart';
@@ -27,6 +29,12 @@ class _CurtainsAppState extends State<CurtainsApp> {
   }
 
   void getConnectionInfo() async {
+    if (kIsWeb) {
+      _client.connectionInfoSink.add(LocalConnectionInfo());
+      _client.connectionEvents.add(ConnectionEvent.connect);
+      return;
+    }
+
     final prefs = await SharedPreferences.getInstance();
     if (prefs.getBool(autoconnect_prefs_key) ?? false) {
       final ip = prefs.getString(adress_prefs_key);
@@ -36,7 +44,7 @@ class _CurtainsAppState extends State<CurtainsApp> {
       if (ip != null && port != null && passphrase != null) {
         final sshkey =
             await DefaultAssetBundle.of(context).loadString(private_key_path);
-        final cInfo = ConnectionInfo(
+        final cInfo = SSHConnectionInfo(
             host: ip, port: port, privatekey: sshkey, passphrase: passphrase);
         _client.connectionInfoSink.add(cInfo);
         _client.connectionEvents.add(ConnectionEvent.connect);
@@ -56,12 +64,11 @@ class _CurtainsAppState extends State<CurtainsApp> {
   @override
   Widget build(BuildContext context) {
     final accentColor = Colors.lime;
-    final highlightColor = Colors.amber;
     return MaterialApp(
       title: 'curtains',
       theme: ThemeData.dark().copyWith(
         accentColor: accentColor,
-        highlightColor: highlightColor,
+        highlightColor: Colors.amber,
         textSelectionColor: accentColor,
         cursorColor: accentColor,
         textSelectionHandleColor: accentColor,
@@ -105,27 +112,23 @@ class _CurtainsAppState extends State<CurtainsApp> {
 }
 
 class MainPage extends StatelessWidget {
-  final String title = 'curtains';
-  Widget build(BuildContext context) {
-    final client = ClientProvider.of(context).client;
-    return StreamBuilder<ConnectionStatus>(
-        stream: client.connection,
-        initialData: ConnectionStatus.connecting,
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return ConnectionSettings(error: snapshot.error);
-          }
-          switch (snapshot.data) {
-            case ConnectionStatus.connecting:
-              return Container(
-                  decoration: BoxDecoration(
-                      color: Theme.of(context).scaffoldBackgroundColor),
-                  child: Center(child: CircularProgressIndicator()));
-            case ConnectionStatus.disconnected:
-              return ConnectionSettings();
-            default:
-              return AlarmPage();
-          }
-        });
-  }
+  Widget build(BuildContext context) => StreamBuilder<ConnectionStatus>(
+      stream: ClientProvider.of(context).client.connectionStatus,
+      initialData: ConnectionStatus.connecting,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return ConnectionSettings(error: snapshot.error);
+        }
+        switch (snapshot.data) {
+          case ConnectionStatus.connecting:
+            return Container(
+                decoration: BoxDecoration(
+                    color: Theme.of(context).scaffoldBackgroundColor),
+                child: Center(child: CircularProgressIndicator()));
+          case ConnectionStatus.disconnected:
+            return ConnectionSettings();
+          default:
+            return AlarmPage();
+        }
+      });
 }

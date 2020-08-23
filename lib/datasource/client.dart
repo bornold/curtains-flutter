@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:curtains/datasource/connection.dart';
 import 'package:flutter/services.dart';
 import 'package:rxdart/subjects.dart';
 
@@ -10,7 +11,6 @@ import '../models/connection_info.dart';
 import '../models/cronjob.dart';
 
 import 'package:flutter/foundation.dart';
-import 'package:ssh/ssh.dart';
 
 class Client extends ClientBloc {
   final alarmsSubject = BehaviorSubject<UnmodifiableListView<CronJob>>();
@@ -25,7 +25,7 @@ class Client extends ClientBloc {
 
   Stream<List<CronJob>> get alarmStream => alarmsSubject.stream;
   Stream<CronJob> get updatedAlarms => updateAlarmsSubject.stream;
-  Stream<ConnectionStatus> get connection => connectionSubject.stream;
+  Stream<ConnectionStatus> get connectionStatus => connectionSubject.stream;
   Stream<Availability> get availability => availablitySubject.stream;
   Sink<CronJob> get alarmSink => alarmsSetChangeController.sink;
   Sink<CronJob> get updateAlarmSink => updateAlarmsSubject.sink;
@@ -33,7 +33,8 @@ class Client extends ClientBloc {
   Sink<ConnectionInfo> get connectionInfoSink => connectionInfoController.sink;
 
   var alarms = <CronJob>[];
-  SSHClient client;
+  // SSHClient client;
+  Connection connection;
 
   Client() {
     connectionController.stream.listen(handelConnectionRequest);
@@ -50,7 +51,7 @@ class Client extends ClientBloc {
     updateAlarmsSubject.close();
     connectionInfoController.close();
     availablitySubject.close();
-    client.disconnect();
+    connection?.disconnect();
   }
 
   handelConnectionRequest(ConnectionEvent event) async {
@@ -59,8 +60,8 @@ class Client extends ClientBloc {
       final notCommentOrWhitspace =
           (String line) => !line.startsWith('#') && line.trim().isNotEmpty;
       debugPrint('fetching cronjobs');
-      final String res =
-          await executeAndReconnectOnFail(() => client.execute("crontab -l"));
+      final String res = await executeAndReconnectOnFail(
+          () => connection.execute("crontab -l"));
       debugPrint('cronjobs result: $res');
       final cronJobs = res
           .split(RegExp(r'[\n?\r]'))
@@ -75,8 +76,8 @@ class Client extends ClientBloc {
     }
 
     debugPrint(event.toString());
-    if (client == null) {
-      debugPrint('_client not set');
+    if (connection == null) {
+      debugPrint('connection not set');
       connectionSubject.addError(Exception('must set connection info first'));
       return;
     }
@@ -85,7 +86,7 @@ class Client extends ClientBloc {
         case ConnectionEvent.connect:
           connectionSubject.add(ConnectionStatus.connecting);
           final connectionResult =
-              await client.connect().timeout(Duration(seconds: 4));
+              await connection.connect().timeout(Duration(seconds: 4));
           if (connectionResult != connectionOk) {
             connectionSubject.addError(Exception(connectionResult));
             return;
@@ -95,14 +96,15 @@ class Client extends ClientBloc {
           break;
 
         case ConnectionEvent.disconnect:
-          client?.disconnect();
+          connection?.disconnect();
           connectionSubject.add(ConnectionStatus.disconnected);
           debugPrint('disconnected');
           break;
 
         case ConnectionEvent.open:
           availablitySubject.add(Availability.busy);
-          await executeAndReconnectOnFail(() => client.execute(open_command));
+          await executeAndReconnectOnFail(
+              () => connection.execute(open_command));
           availablitySubject.add(Availability.idle);
           break;
 
@@ -123,13 +125,13 @@ class Client extends ClientBloc {
         final alarmEscaped = RegExp.escape(event.toString());
         final remove = "crontab -l | grep -v '^$alarmEscaped\$' | crontab -";
         debugPrint(remove);
-        await executeAndReconnectOnFail(() => client.execute(remove));
+        await executeAndReconnectOnFail(() => connection.execute(remove));
       } else {
         alarms.add(event);
         update();
         final add = '(crontab -l ; echo "$event") | crontab -';
         debugPrint(add);
-        await executeAndReconnectOnFail(() => client.execute(add));
+        await executeAndReconnectOnFail(() => connection.execute(add));
       }
     } catch (e) {
       debugPrint(e.toString());
@@ -147,7 +149,7 @@ class Client extends ClientBloc {
       final updateCommand =
           "(crontab -l | grep -v '#$uuidEscaped\$' ; echo \"$newAlarm\") | crontab -";
       debugPrint(updateCommand);
-      await executeAndReconnectOnFail(() => client.execute(updateCommand));
+      await executeAndReconnectOnFail(() => connection.execute(updateCommand));
     } catch (e) {
       debugPrint(e.toString());
       connectionSubject.addError(e);
@@ -156,24 +158,12 @@ class Client extends ClientBloc {
 
   handelClientInfo(ConnectionInfo conInfo) {
     debugPrint("new connectionInfo $conInfo");
-    if (client == null) {
-      client = SSHClient(
-          username: conInfo.user,
-          host: conInfo.host,
-          port: conInfo.port,
-          passwordOrKey: {
-            "privateKey": conInfo.privatekey,
-            "passphrase": conInfo.passphrase,
-          });
-      client.stateSubscription.onData(handleStateChange);
-    } else {
-      client.username = conInfo.user;
-      client.host = conInfo.host;
-      client.port = conInfo.port;
-      client.passwordOrKey = {
-        "privateKey": conInfo.privatekey,
-        "passphrase": conInfo.passphrase,
-      };
+    if (connection != null) connection?.disconnect();
+    if (conInfo is SSHConnectionInfo) {
+      connection = SSHConnection(conInfo);
+    }
+    if (conInfo is LocalConnectionInfo) {
+      connection = LocalConnection();
     }
   }
 
@@ -193,8 +183,8 @@ class Client extends ClientBloc {
     } on PlatformException catch (pe) {
       if (pe.message == errorSessionDown && depth < 3) {
         debugPrint("session is down, trying to reconnect");
-        client.disconnect();
-        await client.connect().timeout(Duration(seconds: 4));
+        connection.disconnect();
+        await connection.connect().timeout(Duration(seconds: 4));
         debugPrint("reconnect connect successfull, executing statment again");
         return executeAndReconnectOnFail(f, depth: depth + 1);
       } else

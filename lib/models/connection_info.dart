@@ -1,7 +1,11 @@
 import 'package:meta/meta.dart';
 
-class ConnectionInfo {
-  ConnectionInfo(
+abstract class ConnectionInfo {}
+
+class LocalConnectionInfo implements ConnectionInfo {}
+
+class SSHConnectionInfo implements ConnectionInfo {
+  SSHConnectionInfo(
       {this.user = 'pi',
       @required this.host,
       @required this.port,
