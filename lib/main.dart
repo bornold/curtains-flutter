@@ -70,10 +70,10 @@ class _CurtainsAppState extends State<CurtainsApp> {
         appBarTheme: AppBarTheme(
             iconTheme: IconThemeData(color: accentColor),
             textTheme: TextTheme(
-                title: TextStyle(color: Colors.grey[100], fontSize: 24))),
+                headline1: TextStyle(color: Colors.grey[100], fontSize: 24))),
         toggleableActiveColor: accentColor,
         textTheme: TextTheme(
-          subhead: TextStyle(
+          subtitle1: TextStyle(
             color: Colors.grey[400],
             fontSize: 18,
           ),

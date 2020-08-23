@@ -1,11 +1,12 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:rxdart/subjects.dart';
+
 import '../datasource/client_bloc.dart';
 import '../models/connection_info.dart';
 import '../models/cronjob.dart';
 import 'package:flutter/material.dart';
-import 'package:rxdart/rxdart.dart';
 
 class MockedClient extends ClientBloc {
   Stream<List<CronJob>> get alarmStream => alarmsSubject.stream;

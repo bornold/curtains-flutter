@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:flutter/services.dart';
+import 'package:rxdart/subjects.dart';
 
 import '../constants.dart';
 import '../datasource/client_bloc.dart';
@@ -9,7 +10,6 @@ import '../models/connection_info.dart';
 import '../models/cronjob.dart';
 
 import 'package:flutter/foundation.dart';
-import 'package:rxdart/rxdart.dart';
 import 'package:ssh/ssh.dart';
 
 class Client extends ClientBloc {
@@ -31,7 +31,7 @@ class Client extends ClientBloc {
   Sink<CronJob> get updateAlarmSink => updateAlarmsSubject.sink;
   Sink<ConnectionEvent> get connectionEvents => connectionController.sink;
   Sink<ConnectionInfo> get connectionInfoSink => connectionInfoController.sink;
-  
+
   var alarms = <CronJob>[];
   SSHClient client;
 
@@ -59,7 +59,8 @@ class Client extends ClientBloc {
       final notCommentOrWhitspace =
           (String line) => !line.startsWith('#') && line.trim().isNotEmpty;
       debugPrint('fetching cronjobs');
-      final String res = await executeAndReconnectOnFail(() => client.execute("crontab -l"));
+      final String res =
+          await executeAndReconnectOnFail(() => client.execute("crontab -l"));
       debugPrint('cronjobs result: $res');
       final cronJobs = res
           .split(RegExp(r'[\n?\r]'))
@@ -84,7 +85,7 @@ class Client extends ClientBloc {
         case ConnectionEvent.connect:
           connectionSubject.add(ConnectionStatus.connecting);
           final connectionResult =
-            await client.connect().timeout(Duration(seconds: 4));
+              await client.connect().timeout(Duration(seconds: 4));
           if (connectionResult != connectionOk) {
             connectionSubject.addError(Exception(connectionResult));
             return;
@@ -196,8 +197,8 @@ class Client extends ClientBloc {
         await client.connect().timeout(Duration(seconds: 4));
         debugPrint("reconnect connect successfull, executing statment again");
         return executeAndReconnectOnFail(f, depth: depth + 1);
-      }
-      else throw pe;
+      } else
+        throw pe;
     }
   }
 }

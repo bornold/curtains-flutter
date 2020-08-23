@@ -28,8 +28,7 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
         _errorMessage = 'lost connection';
       else
         _errorMessage = 'connection error, wrong ip or port?';
-    }
-    else
+    } else
       _errorMessage = error?.toString() ?? '';
   }
 
@@ -89,7 +88,7 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
               Text(_errorMessage,
                   style: Theme.of(context)
                       .textTheme
-                      .body1
+                      .bodyText2
                       .apply(color: Theme.of(context).errorColor)),
               Spacer(
                 flex: 4,
@@ -100,11 +99,10 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
                     flex: 30,
                     child: TextFormField(
                       validator: (s) {
-                        if (s.isEmpty)
-                          return 'must enter adress';
+                        if (s.isEmpty) return 'must enter adress';
                         if (Uri.tryParse(s) == null)
-                          return 'not a valid adress';                
-                        return null;       
+                          return 'not a valid adress';
+                        return null;
                       },
                       keyboardType: TextInputType.url,
                       controller: _adressController,
@@ -121,7 +119,7 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
                         if (s.isEmpty) return 'must enter port';
                         int port = int.tryParse(s) ?? -1;
                         if (port < 0 || port > 65535) return 'not a valid port';
-                        return null;       
+                        return null;
                       },
                       keyboardType: TextInputType.number,
                       controller: _portController,
@@ -164,7 +162,7 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
                       onChanged: (v) => setState(() => autoconnect = v)),
                   Text(
                     'auto connect',
-                    style: Theme.of(context).primaryTextTheme.subhead,
+                    style: Theme.of(context).primaryTextTheme.subtitle1,
                   ),
                 ],
               ),

@@ -31,7 +31,7 @@ class AlarmItem extends StatelessWidget {
                         shape: StadiumBorder(),
                         padding: EdgeInsets.fromLTRB(0, 16, 0, 8),
                         child: Text('${alarm.time.format(context)}',
-                            style: theme.textTheme.display2),
+                            style: theme.textTheme.headline3),
                         onPressed: () async {
                           TimeOfDay selectedTime = await showTimePicker(
                               initialTime: alarm.time,
