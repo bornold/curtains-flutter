@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../constants.dart';
 import '../datasource/client_bloc.dart';
@@ -38,7 +37,7 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
   bool _hidePassphrase = true;
   bool autoconnect = true;
   final _formKey = GlobalKey<FormState>();
-  final _storage = FlutterSecureStorage();
+  // final _storage = FlutterSecureStorage();
   String _passwordHintText = 'enter passphrase';
   String _passwordLabelText = 'passphrase';
   String _storedPassphrase;
@@ -54,7 +53,7 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
     final prefs = await SharedPreferences.getInstance();
     _adressController.text = prefs.getString(adress_prefs_key) ?? '';
     _portController.text = '${prefs.getInt(port_prefs_key) ?? 22}';
-    _storedPassphrase = await _storage.read(key: passphrase_sercure_key);
+    _storedPassphrase = prefs.getString(passphrase_sercure_key);
     if (_storedPassphrase != null) {
       setState(() {
         _passwordHintText = 'unchanged';
@@ -194,8 +193,7 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
               prefs.setString(adress_prefs_key, ip);
               prefs.setBool(autoconnect_prefs_key, autoconnect);
               if (passphrase != null) {
-                await _storage.write(
-                    key: passphrase_sercure_key, value: passphrase);
+                prefs.setString(passphrase_sercure_key, passphrase);
 
                 final cInfo = ConnectionInfo(
                     host: ip,

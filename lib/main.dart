@@ -6,7 +6,6 @@ import 'views/alarmPage.dart';
 import 'views/connection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -28,12 +27,11 @@ class _CurtainsAppState extends State<CurtainsApp> {
   }
 
   void getConnectionInfo() async {
-    final storage = FlutterSecureStorage();
     final prefs = await SharedPreferences.getInstance();
     if (prefs.getBool(autoconnect_prefs_key) ?? false) {
       final ip = prefs.getString(adress_prefs_key);
       final port = prefs.getInt(port_prefs_key);
-      final passphrase = await storage.read(key: passphrase_sercure_key);
+      final passphrase = prefs.getString(passphrase_sercure_key);
 
       if (ip != null && port != null && passphrase != null) {
         final sshkey =

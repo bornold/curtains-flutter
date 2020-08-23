@@ -12,7 +12,6 @@ dependencies:
   ssh: ^0.0.7
   rxdart: ^0.24.1
   shared_preferences: ^0.5.7+3
-  flutter_secure_storage: ^3.3.3
   uuid: ^2.2.0
 
 dev_dependencies:
