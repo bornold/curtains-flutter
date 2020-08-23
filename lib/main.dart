@@ -1,8 +1,8 @@
+import 'package:curtains/datasource/bloc/curtains_bloc.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'constants.dart';
-import 'datasource/client.dart';
-import 'datasource/client_bloc.dart';
 import 'models/connection_info.dart';
 import 'views/alarmPage.dart';
 import 'views/connection.dart';
@@ -14,53 +14,7 @@ void main() {
   runApp(CurtainsApp());
 }
 
-class CurtainsApp extends StatefulWidget {
-  @override
-  _CurtainsAppState createState() => _CurtainsAppState();
-}
-
-class _CurtainsAppState extends State<CurtainsApp> {
-  final _client = Client();
-
-  @override
-  void initState() {
-    getConnectionInfo();
-    super.initState();
-  }
-
-  void getConnectionInfo() async {
-    if (kIsWeb) {
-      _client.connectionInfoSink.add(LocalConnectionInfo());
-      _client.connectionEvents.add(ConnectionEvent.connect);
-      return;
-    }
-
-    final prefs = await SharedPreferences.getInstance();
-    if (prefs.getBool(autoconnect_prefs_key) ?? false) {
-      final ip = prefs.getString(adress_prefs_key);
-      final port = prefs.getInt(port_prefs_key);
-      final passphrase = prefs.getString(passphrase_sercure_key);
-
-      if (ip != null && port != null && passphrase != null) {
-        final sshkey =
-            await DefaultAssetBundle.of(context).loadString(private_key_path);
-        final cInfo = SSHConnectionInfo(
-            host: ip, port: port, privatekey: sshkey, passphrase: passphrase);
-        _client.connectionInfoSink.add(cInfo);
-        _client.connectionEvents.add(ConnectionEvent.connect);
-        return;
-      }
-    }
-
-    _client.connectionEvents.add(ConnectionEvent.disconnect);
-  }
-
-  @override
-  void dispose() {
-    _client.dispose();
-    super.dispose();
-  }
-
+class CurtainsApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accentColor = Colors.lime;
@@ -72,6 +26,10 @@ class _CurtainsAppState extends State<CurtainsApp> {
         textSelectionColor: accentColor,
         cursorColor: accentColor,
         textSelectionHandleColor: accentColor,
+        colorScheme: ThemeData.dark().colorScheme.copyWith(
+              onSurface: accentColor[50],
+              primary: accentColor,
+            ),
         appBarTheme: AppBarTheme(
             iconTheme: IconThemeData(color: accentColor),
             textTheme: TextTheme(
@@ -103,8 +61,8 @@ class _CurtainsAppState extends State<CurtainsApp> {
         ),
         iconTheme: IconThemeData(size: 42.0),
       ),
-      home: ClientProvider(
-        client: _client,
+      home: BlocProvider(
+        create: (context) => CurtainsBloc(),
         child: MainPage(),
       ),
     );
@@ -112,23 +70,48 @@ class _CurtainsAppState extends State<CurtainsApp> {
 }
 
 class MainPage extends StatelessWidget {
-  Widget build(BuildContext context) => StreamBuilder<ConnectionStatus>(
-      stream: ClientProvider.of(context).client.connectionStatus,
-      initialData: ConnectionStatus.connecting,
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return ConnectionSettings(error: snapshot.error);
+  Widget build(BuildContext context) {
+    getConnectionInfo(context).then((connectionInfo) {
+      if (connectionInfo != null)
+        BlocProvider.of<CurtainsBloc>(context)
+            .add(ConnectEvent(connectionInfo));
+    });
+    return BlocBuilder<CurtainsBloc, CurtainsState>(
+      builder: (context, state) {
+        if (state is CurtainsDisconnected) {
+          return ConnectionSettings(error: state.error);
+        } else if (state is CurtainsConnected) {
+          return AlarmPage(state.alarms);
         }
-        switch (snapshot.data) {
-          case ConnectionStatus.connecting:
-            return Container(
-                decoration: BoxDecoration(
-                    color: Theme.of(context).scaffoldBackgroundColor),
-                child: Center(child: CircularProgressIndicator()));
-          case ConnectionStatus.disconnected:
-            return ConnectionSettings();
-          default:
-            return AlarmPage();
-        }
-      });
+        return Container(
+          decoration:
+              BoxDecoration(color: Theme.of(context).scaffoldBackgroundColor),
+          child: Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<ConnectionInfo> getConnectionInfo(BuildContext context) async {
+    if (kIsWeb) {
+      return RestfullConnectionInfo('localhost', 8080);
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool(autoconnect_prefs_key) ?? false) {
+      final ip = prefs.getString(adress_prefs_key);
+      final port = prefs.getInt(port_prefs_key);
+      final passphrase = prefs.getString(passphrase_sercure_key);
+
+      if (ip != null && port != null && passphrase != null) {
+        final sshkey =
+            await DefaultAssetBundle.of(context).loadString(private_key_path);
+        return SSHConnectionInfo(
+            host: ip, port: port, privatekey: sshkey, passphrase: passphrase);
+      }
+    }
+    return null;
+  }
 }

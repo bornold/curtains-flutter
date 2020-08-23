@@ -1,11 +1,12 @@
 import 'dart:async';
 
+import 'package:curtains/datasource/bloc/curtains_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../constants.dart';
-import '../datasource/client_bloc.dart';
 import '../models/connection_info.dart';
 
 class ConnectionSettings extends StatefulWidget {
@@ -72,7 +73,6 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
 
   @override
   Widget build(BuildContext context) {
-    final client = ClientProvider.of(context).client;
     return Scaffold(
       appBar: AppBar(title: Text('connection info')),
       body: Padding(
@@ -201,9 +201,7 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
                   port: port,
                   privatekey: sshkey,
                   passphrase: passphrase);
-
-              client.connectionInfoSink.add(cInfo);
-              client.connectionEvents.add(ConnectionEvent.connect);
+              BlocProvider.of<CurtainsBloc>(context).add(ConnectEvent(cInfo));
             }
           } else {
             setState(() => _errorMessage = '');

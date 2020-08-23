@@ -47,7 +47,8 @@ class SSHConnection implements Connection {
   Future<String> execute(String cmd) => _sshClient.execute(cmd);
 }
 
-class LocalConnection implements Connection {
+class RestfullConnection implements Connection {
+  RestfullConnection(RestfullConnectionInfo connectionInfo);
   @override
   Future<String> connect() => Future.value(connectionOk);
 
