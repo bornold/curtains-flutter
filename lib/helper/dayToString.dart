@@ -65,7 +65,7 @@ String daysToSentence(Iterable<Day> days) {
     int lastDayIndex = firstDayIndex;
     int currentFirstDayIndex = firstDayIndex;
 
-    var entities = List<String>();
+    var entities = <String>[];
 
     for (int i = nextDay(firstDayIndex); i != firstDayIndex; i = nextDay(i)) {
       if (dayChain.contains(indexToDay(i))) {

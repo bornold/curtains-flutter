@@ -23,9 +23,11 @@ class CurtainsApp extends StatelessWidget {
       theme: ThemeData.dark().copyWith(
         accentColor: accentColor,
         highlightColor: Colors.amber,
-        textSelectionColor: accentColor,
-        cursorColor: accentColor,
-        textSelectionHandleColor: accentColor,
+        textSelectionTheme: TextSelectionThemeData(
+          selectionColor: accentColor,
+          cursorColor: accentColor,
+          selectionHandleColor: accentColor,
+        ),
         colorScheme: ThemeData.dark().colorScheme.copyWith(
               onSurface: accentColor[50],
               primary: accentColor,
@@ -75,6 +77,8 @@ class MainPage extends StatelessWidget {
       if (connectionInfo != null)
         BlocProvider.of<CurtainsBloc>(context)
             .add(ConnectEvent(connectionInfo));
+      else
+        BlocProvider.of<CurtainsBloc>(context).add(Disconnect());
     });
     return BlocBuilder<CurtainsBloc, CurtainsState>(
       builder: (context, state) {

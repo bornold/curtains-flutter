@@ -115,7 +115,7 @@ class AlarmPage extends StatelessWidget {
       Timer(duration, () {
         if (!c.isCompleted) c.complete(true);
       });
-      final scaffold = Scaffold.of(context);
+      final scaffold = ScaffoldMessenger.of(context);
       scaffold.removeCurrentSnackBar();
       scaffold.showSnackBar(SnackBar(
           duration: duration - Duration(milliseconds: 200),

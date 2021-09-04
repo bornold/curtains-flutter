@@ -37,7 +37,7 @@ class CurtainsBloc extends Bloc<CurtainsEvent, CurtainsState> {
       }
 
       if (event is Disconnect) {
-        _connection.disconnect();
+        _connection?.disconnect();
         yield CurtainsDisconnected();
       }
 
