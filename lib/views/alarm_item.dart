@@ -1,7 +1,7 @@
 import 'package:curtains/datasource/bloc/curtains_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../helper/dayToString.dart';
+import '../helper/day_to_string.dart';
 import '../models/cronjob.dart';
 import 'package:flutter/material.dart';
 
@@ -10,9 +10,10 @@ class AlarmItem extends StatelessWidget {
 
   final CronJob alarm;
   const AlarmItem({
-    @required this.context,
-    @required this.alarm,
-  });
+    required this.context,
+    required this.alarm,
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -25,21 +26,23 @@ class AlarmItem extends StatelessWidget {
               Center(
                 child: TextButton(
                   style: ButtonStyle(
-                    shape: MaterialStateProperty.all(StadiumBorder()),
+                    shape: MaterialStateProperty.all(const StadiumBorder()),
                     padding: MaterialStateProperty.all(
-                      EdgeInsets.fromLTRB(0, 16, 0, 8),
+                      const EdgeInsets.fromLTRB(0, 16, 0, 8),
                     ),
                   ),
-                  child: Text('${alarm.time.format(context)}',
+                  child: Text(alarm.time.format(context),
                       style: theme.textTheme.headline3),
                   onPressed: () async {
-                    TimeOfDay selectedTime = await showTimePicker(
+                    TimeOfDay? selectedTime = await showTimePicker(
                       initialTime: alarm.time,
                       context: context,
-                      builder: (BuildContext context, Widget child) => Theme(
-                        data: theme,
-                        child: child,
-                      ),
+                      builder: (context, child) => child != null
+                          ? Theme(
+                              data: theme,
+                              child: child,
+                            )
+                          : const SizedBox.shrink(),
                     );
                     if (selectedTime != null) {
                       BlocProvider.of<CurtainsBloc>(context).add(UpdateCroneJob(
@@ -68,9 +71,9 @@ class DayToggleBar extends StatelessWidget {
 
   final CronJob alarm;
   const DayToggleBar({
-    Key key,
-    @required this.context,
-    @required this.alarm,
+    Key? key,
+    required this.context,
+    required this.alarm,
   }) : super(key: key);
 
   @override
@@ -85,7 +88,7 @@ class DayToggleBar extends StatelessWidget {
             return ElevatedButton(
               style: active
                   ? ButtonStyle(
-                      shape: MaterialStateProperty.all(CircleBorder()),
+                      shape: MaterialStateProperty.all(const CircleBorder()),
                       foregroundColor: MaterialStateProperty.resolveWith(
                         (states) => states.contains(MaterialState.disabled)
                             ? theme.primaryColorLight
@@ -93,20 +96,20 @@ class DayToggleBar extends StatelessWidget {
                       ),
                       backgroundColor: MaterialStateProperty.resolveWith(
                         (states) => states.contains(MaterialState.disabled)
-                            ? theme.accentIconTheme.color
-                            : theme.accentColor,
+                            ? theme.colorScheme.secondary
+                            : theme.colorScheme.primary,
                       ),
                     )
                   : ButtonStyle(
-                      shape: MaterialStateProperty.all(CircleBorder()),
+                      shape: MaterialStateProperty.all(const CircleBorder()),
                       foregroundColor:
                           MaterialStateProperty.all(theme.primaryColorLight),
                       backgroundColor: MaterialStateProperty.all(
-                          theme.accentIconTheme.color),
+                          theme.floatingActionButtonTheme.backgroundColor),
                     ),
               child: Text(
                 dayToString(d),
-                style: TextStyle(fontSize: 14),
+                style: const TextStyle(fontSize: 14),
               ),
               onPressed: () {
                 var oldDays = alarm.days.toSet();

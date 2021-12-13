@@ -2,13 +2,13 @@ import 'dart:io';
 
 import 'package:curtains/models/connection_info.dart';
 import 'package:flutter/foundation.dart';
-import 'package:ssh/ssh.dart';
+import 'package:ssh2/ssh2.dart';
 
 import '../constants.dart';
 
 abstract class Connection {
-  Future<String> execute(String cmd);
-  Future<String> connect();
+  Future<String?> execute(String cmd);
+  Future<String?> connect();
   disconnect();
 }
 
@@ -25,7 +25,7 @@ class SSHConnection implements Connection {
     _sshClient.stateSubscription.onData((d) => debugPrint(d.toString()));
   }
 
-  SSHClient _sshClient;
+  late SSHClient _sshClient;
 
   void handelConnectionInfoChanged(SSHConnectionInfo connectionInfo) {
     _sshClient.username = connectionInfo.user;
@@ -38,13 +38,13 @@ class SSHConnection implements Connection {
   }
 
   @override
-  Future<String> connect() => _sshClient.connect();
+  Future<String?> connect() => _sshClient.connect();
 
   @override
   disconnect() => _sshClient.disconnect();
 
   @override
-  Future<String> execute(String cmd) => _sshClient.execute(cmd);
+  Future<String?> execute(String cmd) => _sshClient.execute(cmd);
 }
 
 class RestfullConnection implements Connection {

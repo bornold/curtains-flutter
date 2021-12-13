@@ -7,12 +7,12 @@ abstract class CurtainsState extends Equatable {
 }
 
 class CurtainsDisconnected extends CurtainsState {
-  final Object error;
+  final Object? error;
 
   CurtainsDisconnected([this.error]);
 
   @override
-  List<Object> get props => [error];
+  List<Object?> get props => [error];
 }
 
 class CurtainsConnecting extends CurtainsState {

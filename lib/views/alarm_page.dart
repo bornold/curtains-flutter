@@ -4,10 +4,12 @@ import 'package:curtains/datasource/bloc/curtains_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../models/cronjob.dart';
-import '../views/alarmItem.dart';
+import 'alarm_item.dart';
 import 'package:flutter/material.dart';
 
 class AddAlarmButton extends StatelessWidget {
+  const AddAlarmButton({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     final openColor = Theme.of(context).highlightColor;
@@ -16,21 +18,24 @@ class AddAlarmButton extends StatelessWidget {
       children: <Widget>[
         FloatingActionButton(
           onPressed: () async {
-            TimeOfDay selectedTime = await showTimePicker(
-                initialTime: TimeOfDay.fromDateTime(
-                    DateTime.now().add(Duration(minutes: 1))),
-                context: context,
-                builder: (context, child) => Theme(
+            TimeOfDay? selectedTime = await showTimePicker(
+              initialTime: TimeOfDay.fromDateTime(
+                  DateTime.now().add(const Duration(minutes: 1))),
+              context: context,
+              builder: (context, child) => child != null
+                  ? Theme(
                       data: Theme.of(context),
                       child: child,
-                    ));
+                    )
+                  : const SizedBox.shrink(),
+            );
             if (selectedTime != null) {
               BlocProvider.of<CurtainsBloc>(context).add(
                   AddOrRemoveCroneJob(CronJob.everyday(time: selectedTime)));
             }
           },
           tooltip: 'add alarm',
-          child: Icon(Icons.alarm_add),
+          child: const Icon(Icons.alarm_add),
         ),
         SizedBox(
           width: 56,
@@ -46,7 +51,7 @@ class AddAlarmButton extends StatelessWidget {
                       onPressed: () => BlocProvider.of<CurtainsBloc>(context)
                           .add(OpenEvent()),
                       tooltip: 'open curtains',
-                      child: Icon(Icons.flare),
+                      child: const Icon(Icons.flare),
                     );
             },
           ),
@@ -60,12 +65,13 @@ class AlarmPage extends StatelessWidget {
   final List<CronJob> alarms;
   final String title = 'curtains';
 
-  const AlarmPage(this.alarms, {Key key}) : super(key: key);
+  const AlarmPage(this.alarms, {Key? key}) : super(key: key);
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
           leading: IconButton(
-            icon: Icon(Icons.phonelink_off),
+            icon: const Icon(Icons.phonelink_off),
             onPressed: () =>
                 BlocProvider.of<CurtainsBloc>(context).add(Disconnect()),
           ),
@@ -73,17 +79,17 @@ class AlarmPage extends StatelessWidget {
       body: RefreshIndicator(
         onRefresh: () async {
           BlocProvider.of<CurtainsBloc>(context).add(RefreshEvent());
-          await Future.delayed(Duration(milliseconds: 100));
+          await Future.delayed(const Duration(milliseconds: 100));
         },
         child: ListView.builder(
           itemCount: alarms.length,
           itemBuilder: (BuildContext context, int index) {
             final a = alarms[index];
             return Padding(
-              padding: EdgeInsets.all(8.0),
+              padding: const EdgeInsets.all(8.0),
               child: Dismissible(
                 key: Key(a.uuid),
-                resizeDuration: Duration(milliseconds: 1000),
+                resizeDuration: const Duration(milliseconds: 1000),
                 direction: DismissDirection.startToEnd,
                 confirmDismiss: confirmDismissCallback(a, context),
                 onDismissed: (dircetion) =>
@@ -103,7 +109,7 @@ class AlarmPage extends StatelessWidget {
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: AddAlarmButton(),
+      floatingActionButton: const AddAlarmButton(),
     );
   }
 
@@ -111,14 +117,14 @@ class AlarmPage extends StatelessWidget {
       CronJob alarm, BuildContext context) {
     return (direction) {
       final c = Completer<bool>();
-      final duration = Duration(milliseconds: 1200);
+      const duration = Duration(milliseconds: 1200);
       Timer(duration, () {
         if (!c.isCompleted) c.complete(true);
       });
       final scaffold = ScaffoldMessenger.of(context);
       scaffold.removeCurrentSnackBar();
       scaffold.showSnackBar(SnackBar(
-          duration: duration - Duration(milliseconds: 200),
+          duration: duration - const Duration(milliseconds: 200),
           content: Text('${alarm.time.format(context)} removed'),
           action: SnackBarAction(
               label: 'undo',

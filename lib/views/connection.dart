@@ -10,28 +10,28 @@ import '../constants.dart';
 import '../models/connection_info.dart';
 
 class ConnectionSettings extends StatefulWidget {
-  ConnectionSettings({this.error});
-  final Object error;
+  const ConnectionSettings({this.error, Key? key}) : super(key: key);
+  final Object? error;
   @override
-  _ConnectionSettingsState createState() =>
-      _ConnectionSettingsState(error: error);
+  _ConnectionSettingsState createState() => _ConnectionSettingsState();
 }
 
 class _ConnectionSettingsState extends State<ConnectionSettings> {
-  _ConnectionSettingsState({
-    Object error,
-  }) {
-    if (error is TimeoutException)
-      _errorMessage = 'timed out, wrong ip?';
-    else if (error is PlatformException && error.code == connectionFailure) {
-      if (error.message == errorAuth)
-        _errorMessage = 'wrong password';
-      else if (error.message == errorSessionDown)
-        _errorMessage = 'lost connection';
-      else
-        _errorMessage = 'connection error, wrong ip or port?';
-    } else
-      _errorMessage = error?.toString() ?? '';
+  String get _errorMessage {
+    final error = widget.error;
+    if (error is TimeoutException) {
+      return 'timed out, wrong ip?';
+    } else if (error is PlatformException && error.code == connectionFailure) {
+      if (error.message == errorAuth) {
+        return 'wrong password';
+      } else if (error.message == errorSessionDown) {
+        return 'lost connection';
+      } else {
+        return 'connection error, wrong ip or port?';
+      }
+    } else {
+      return error?.toString() ?? 'unknown error';
+    }
   }
 
   final _passphraseController = TextEditingController();
@@ -42,20 +42,19 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
   final _formKey = GlobalKey<FormState>();
   String _passwordHintText = 'enter passphrase';
   String _passwordLabelText = 'passphrase';
-  String _storedPassphrase;
-  String _errorMessage;
+  String? _storedPassphrase;
 
   @override
   void initState() {
-    setPrefs();
+    _setPrefs();
     super.initState();
   }
 
-  void setPrefs() async {
+  void _setPrefs() async {
     final prefs = await SharedPreferences.getInstance();
-    _adressController.text = prefs.getString(adress_prefs_key) ?? '';
-    _portController.text = '${prefs.getInt(port_prefs_key) ?? 22}';
-    _storedPassphrase = prefs.getString(passphrase_sercure_key);
+    _adressController.text = prefs.getString(adressPrefsKey) ?? '';
+    _portController.text = '${prefs.getInt(portPrefsKey) ?? 22}';
+    _storedPassphrase = prefs.getString(passphraseSercureKey);
     if (_storedPassphrase != null) {
       setState(() {
         _passwordHintText = 'unchanged';
@@ -74,7 +73,7 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('connection info')),
+      appBar: AppBar(title: const Text('connection info')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -82,15 +81,15 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              Spacer(
+              const Spacer(
                 flex: 4,
               ),
               Text(_errorMessage,
                   style: Theme.of(context)
                       .textTheme
                       .bodyText2
-                      .apply(color: Theme.of(context).errorColor)),
-              Spacer(
+                      ?.apply(color: Theme.of(context).errorColor)),
+              const Spacer(
                 flex: 4,
               ),
               Row(
@@ -99,42 +98,44 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
                     flex: 30,
                     child: TextFormField(
                       validator: (s) {
-                        if (s.isEmpty) return 'must enter adress';
-                        if (Uri.tryParse(s) == null)
+                        if (s == null || s.isEmpty) return 'must enter adress';
+                        if (Uri.tryParse(s) == null) {
                           return 'not a valid adress';
+                        }
                         return null;
                       },
                       keyboardType: TextInputType.url,
                       controller: _adressController,
-                      decoration: InputDecoration(labelText: 'adress'),
+                      decoration: const InputDecoration(labelText: 'adress'),
                     ),
                   ),
-                  Spacer(
+                  const Spacer(
                     flex: 1,
                   ),
                   Expanded(
                     flex: 12,
                     child: TextFormField(
                       validator: (s) {
-                        if (s.isEmpty) return 'must enter port';
+                        if (s == null || s.isEmpty) return 'must enter port';
                         int port = int.tryParse(s) ?? -1;
                         if (port < 0 || port > 65535) return 'not a valid port';
                         return null;
                       },
                       keyboardType: TextInputType.number,
                       controller: _portController,
-                      decoration: InputDecoration(labelText: 'port'),
+                      decoration: const InputDecoration(labelText: 'port'),
                     ),
                   ),
                 ],
               ),
-              Spacer(
+              const Spacer(
                 flex: 1,
               ),
               TextFormField(
                 validator: (s) {
-                  if (s.isEmpty && _storedPassphrase == null)
+                  if (s == null || s.isEmpty && _storedPassphrase == null) {
                     return 'must enter passphrase';
+                  }
                   return null;
                 },
                 obscureText: _hidePassphrase,
@@ -142,7 +143,7 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
                 decoration: InputDecoration(
                   hintText: _passwordHintText,
                   suffixIcon: IconButton(
-                    color: Theme.of(context).accentColor,
+                    color: Theme.of(context).colorScheme.secondary,
                     icon: Icon(
                         _hidePassphrase ? Icons.lock_outline : Icons.lock_open),
                     onPressed: () =>
@@ -151,9 +152,7 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
                   labelText: _passwordLabelText,
                 ),
               ),
-              Spacer(
-                flex: 1,
-              ),
+              const Spacer(flex: 1),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
@@ -166,35 +165,31 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
                   ),
                 ],
               ),
-              Spacer(
-                flex: 8,
-              ),
-              Container(
-                height: 60,
-              )
+              const Spacer(flex: 8),
+              Container(height: 60)
             ],
           ),
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.phonelink),
+        child: const Icon(Icons.phonelink),
         onPressed: () async {
-          if (_formKey.currentState.validate()) {
+          if (_formKey.currentState?.validate() == true) {
             final ip = _adressController.text;
             final port = int.tryParse(_portController.text) ?? 22;
             final inputPassphrase = _passphraseController.text;
             final passphrase =
                 inputPassphrase.isEmpty ? _storedPassphrase : inputPassphrase;
-            final sshkey = await DefaultAssetBundle.of(context)
-                .loadString(private_key_path);
+            final sshkey =
+                await DefaultAssetBundle.of(context).loadString(privateKeyPath);
 
             final prefs = await SharedPreferences.getInstance();
-            prefs.setInt(port_prefs_key, port);
-            prefs.setString(adress_prefs_key, ip);
-            prefs.setBool(autoconnect_prefs_key, autoconnect);
+            prefs.setInt(portPrefsKey, port);
+            prefs.setString(adressPrefsKey, ip);
+            prefs.setBool(autoconnectPrefsKey, autoconnect);
             if (passphrase != null) {
-              prefs.setString(passphrase_sercure_key, passphrase);
+              prefs.setString(passphraseSercureKey, passphrase);
 
               final cInfo = SSHConnectionInfo(
                   host: ip,
@@ -203,8 +198,6 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
                   passphrase: passphrase);
               BlocProvider.of<CurtainsBloc>(context).add(ConnectEvent(cInfo));
             }
-          } else {
-            setState(() => _errorMessage = '');
           }
         },
       ),

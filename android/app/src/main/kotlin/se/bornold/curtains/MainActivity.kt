@@ -1,4 +1,4 @@
-package se.bornold.curtains_flutter
+package se.bornold.curtains
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -4,24 +4,24 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'constants.dart';
 import 'models/connection_info.dart';
-import 'views/alarmPage.dart';
+import 'views/alarm_page.dart';
 import 'views/connection.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  runApp(CurtainsApp());
+  runApp(const CurtainsApp());
 }
 
 class CurtainsApp extends StatelessWidget {
+  const CurtainsApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     final accentColor = Colors.lime;
     return MaterialApp(
       title: 'curtains',
       theme: ThemeData.dark().copyWith(
-        accentColor: accentColor,
         highlightColor: Colors.amber,
         textSelectionTheme: TextSelectionThemeData(
           selectionColor: accentColor,
@@ -31,11 +31,12 @@ class CurtainsApp extends StatelessWidget {
         colorScheme: ThemeData.dark().colorScheme.copyWith(
               onSurface: accentColor[50],
               primary: accentColor,
+              secondary: accentColor,
             ),
         appBarTheme: AppBarTheme(
-            iconTheme: IconThemeData(color: accentColor),
-            textTheme: TextTheme(
-                headline1: TextStyle(color: Colors.grey[100], fontSize: 24))),
+          iconTheme: IconThemeData(color: accentColor),
+          titleTextStyle: TextStyle(color: Colors.grey[100], fontSize: 24),
+        ),
         toggleableActiveColor: accentColor,
         textTheme: TextTheme(
           subtitle1: TextStyle(
@@ -45,7 +46,7 @@ class CurtainsApp extends StatelessWidget {
         ),
         floatingActionButtonTheme:
             FloatingActionButtonThemeData(backgroundColor: accentColor),
-        cardTheme: CardTheme(
+        cardTheme: const CardTheme(
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(16.0),
@@ -61,24 +62,28 @@ class CurtainsApp extends StatelessWidget {
           padding: EdgeInsets.zero,
           colorScheme: ColorScheme.fromSwatch(primarySwatch: accentColor),
         ),
-        iconTheme: IconThemeData(size: 42.0),
+        iconTheme: const IconThemeData(size: 42.0),
       ),
       home: BlocProvider(
         create: (context) => CurtainsBloc(),
-        child: MainPage(),
+        child: const MainPage(),
       ),
     );
   }
 }
 
 class MainPage extends StatelessWidget {
+  const MainPage({Key? key}) : super(key: key);
+
+  @override
   Widget build(BuildContext context) {
     getConnectionInfo(context).then((connectionInfo) {
-      if (connectionInfo != null)
+      if (connectionInfo != null) {
         BlocProvider.of<CurtainsBloc>(context)
             .add(ConnectEvent(connectionInfo));
-      else
+      } else {
         BlocProvider.of<CurtainsBloc>(context).add(Disconnect());
+      }
     });
     return BlocBuilder<CurtainsBloc, CurtainsState>(
       builder: (context, state) {
@@ -90,7 +95,7 @@ class MainPage extends StatelessWidget {
         return Container(
           decoration:
               BoxDecoration(color: Theme.of(context).scaffoldBackgroundColor),
-          child: Center(
+          child: const Center(
             child: CircularProgressIndicator(),
           ),
         );
@@ -98,20 +103,20 @@ class MainPage extends StatelessWidget {
     );
   }
 
-  Future<ConnectionInfo> getConnectionInfo(BuildContext context) async {
+  Future<ConnectionInfo?> getConnectionInfo(BuildContext context) async {
     if (kIsWeb) {
-      return RestfullConnectionInfo('localhost', 8080);
+      return const RestfullConnectionInfo('localhost', 8080);
     }
 
     final prefs = await SharedPreferences.getInstance();
-    if (prefs.getBool(autoconnect_prefs_key) ?? false) {
-      final ip = prefs.getString(adress_prefs_key);
-      final port = prefs.getInt(port_prefs_key);
-      final passphrase = prefs.getString(passphrase_sercure_key);
+    if (prefs.getBool(autoconnectPrefsKey) ?? false) {
+      final ip = prefs.getString(adressPrefsKey);
+      final port = prefs.getInt(portPrefsKey);
+      final passphrase = prefs.getString(passphraseSercureKey);
 
       if (ip != null && port != null && passphrase != null) {
         final sshkey =
-            await DefaultAssetBundle.of(context).loadString(private_key_path);
+            await DefaultAssetBundle.of(context).loadString(privateKeyPath);
         return SSHConnectionInfo(
             host: ip, port: port, privatekey: sshkey, passphrase: passphrase);
       }

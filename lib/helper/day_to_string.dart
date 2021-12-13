@@ -50,9 +50,9 @@ String daysToSentence(Iterable<Day> days) {
     return Day.mon;
   }
 
-  final nextDay = (d) => (d + 1) % Day.values.length;
-  final dayToIndex = (d) => Day.values.indexOf(d);
-  final indexToDay = (i) => Day.values[i];
+  nextDay(d) => (d + 1) % Day.values.length;
+  dayToIndex(d) => Day.values.indexOf(d);
+  indexToDay(i) => Day.values[i];
   int _dist(int d1Index, int d2Index) {
     return (d1Index > d2Index)
         ? Day.values.length - d1Index + d2Index + 1
@@ -78,11 +78,11 @@ String daysToSentence(Iterable<Day> days) {
         int containingDays = _dist(currentFirstDayIndex, lastDayIndex);
 
         if (containingDays < 2) {
-          entities.add('$d1');
+          entities.add(d1);
         } else if (containingDays > 2) {
           entities.add('$d1 to $d2');
         } else {
-          entities.addAll(['$d1', '$d2']);
+          entities.addAll([d1, d2]);
         }
         currentFirstDayIndex = lastDayIndex = -1;
       }
@@ -100,14 +100,14 @@ String daysToSentence(Iterable<Day> days) {
     }
   }
 
-  if (days?.isEmpty ?? true) return '';
+  if (days.isEmpty) return '';
   if (days.toSet().containsAll(Day.values.toSet())) return 'everyday';
   return _longestDayChain(days);
 }
 
 String daysToString(UnmodifiableListView<Day> days) => days.isEmpty
     ? ''
-    : SplayTreeSet.from(days,
+    : SplayTreeSet<Day>.from(days,
             (a, b) => Day.values.indexOf(a).compareTo(Day.values.indexOf(b)))
         .map((day) => dayToString(day))
         .join(',');
