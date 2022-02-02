@@ -17,6 +17,8 @@ class OpenEvent extends CurtainsEvent {}
 class AddOrRemoveCroneJob extends CurtainsEvent {
   final CronJob cronJob;
   AddOrRemoveCroneJob(this.cronJob);
+  @override
+  String toString() => cronJob.toString();
 }
 
 class UpdateCroneJob extends CurtainsEvent {

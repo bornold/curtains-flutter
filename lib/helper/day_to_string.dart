@@ -109,25 +109,5 @@ String daysToString(UnmodifiableListView<Day> days) => days.isEmpty
     ? ''
     : SplayTreeSet<Day>.from(days,
             (a, b) => Day.values.indexOf(a).compareTo(Day.values.indexOf(b)))
-        .map((day) => dayToString(day))
+        .map((day) => day.name)
         .join(',');
-String dayToString(Day day) {
-  switch (day) {
-    case Day.mon:
-      return 'mon';
-    case Day.tue:
-      return 'tue';
-    case Day.wed:
-      return 'wed';
-    case Day.thu:
-      return 'thu';
-    case Day.fri:
-      return 'fri';
-    case Day.sat:
-      return 'sat';
-    case Day.sun:
-      return 'sun';
-    default:
-      return '';
-  }
-}

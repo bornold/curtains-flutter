@@ -11,7 +11,7 @@ dependencies:
   ssh2: ^2.2.3
   shared_preferences: ^2.0.9
   uuid: ^3.0.4
-  flutter_bloc: ^7.3.3
+  flutter_bloc: ^8.0.1
   equatable: ^2.0.3
 
 dev_dependencies:

@@ -27,6 +27,7 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
       } else if (error.message == errorSessionDown) {
         return 'lost connection';
       } else {
+        print(error);
         return 'connection error, wrong ip or port?';
       }
     } else {

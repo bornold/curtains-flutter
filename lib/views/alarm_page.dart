@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import 'package:curtains/datasource/bloc/curtains_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../models/cronjob.dart';
-import 'alarm_item.dart';
 import 'package:flutter/material.dart';
+
+import 'package:curtains/datasource/bloc/curtains_bloc.dart';
+import 'package:curtains/models/cronjob.dart';
+import 'package:curtains/views/alarm_item.dart';
 
 class AddAlarmButton extends StatelessWidget {
   const AddAlarmButton({Key? key}) : super(key: key);
@@ -90,7 +90,7 @@ class AlarmPage extends StatelessWidget {
               child: Dismissible(
                 key: Key(a.uuid),
                 resizeDuration: const Duration(milliseconds: 1000),
-                direction: DismissDirection.startToEnd,
+                direction: DismissDirection.endToStart,
                 confirmDismiss: confirmDismissCallback(a, context),
                 onDismissed: (dircetion) =>
                     BlocProvider.of<CurtainsBloc>(context)
