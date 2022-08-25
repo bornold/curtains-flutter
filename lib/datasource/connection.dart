@@ -9,7 +9,7 @@ import '../constants.dart';
 abstract class Connection {
   Future<String?> execute(String cmd);
   Future<String?> connect();
-  disconnect();
+  void disconnect();
 }
 
 class SSHConnection implements Connection {
@@ -41,7 +41,7 @@ class SSHConnection implements Connection {
   Future<String?> connect() => _sshClient.connect();
 
   @override
-  disconnect() => _sshClient.disconnect();
+  void disconnect() => _sshClient.disconnect();
 
   @override
   Future<String?> execute(String cmd) => _sshClient.execute(cmd);
@@ -53,7 +53,7 @@ class RestfullConnection implements Connection {
   Future<String> connect() => Future.value(connectionOk);
 
   @override
-  disconnect() {}
+  void disconnect() {}
 
   @override
   Future<String> execute(String cmd) async {

@@ -94,7 +94,7 @@ String daysToSentence(Iterable<Day> days) {
 
     if (entities.length > 1) {
       final last = entities.removeLast();
-      return entities.join(', ') + ' and ' + last;
+      return '${entities.join(', ')} and $last';
     } else {
       return entities.first;
     }

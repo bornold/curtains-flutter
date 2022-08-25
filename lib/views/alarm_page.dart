@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
 
-import 'package:curtains/datasource/bloc/curtains_bloc.dart';
+import 'package:curtains/datasource/bloc/curtains_cubit.dart';
 import 'package:curtains/models/cronjob.dart';
 import 'package:curtains/views/alarm_item.dart';
 
@@ -18,9 +18,13 @@ class AddAlarmButton extends StatelessWidget {
       children: <Widget>[
         FloatingActionButton(
           onPressed: () async {
+            final curtains = context.read<CurtainsCubit>();
             TimeOfDay? selectedTime = await showTimePicker(
               initialTime: TimeOfDay.fromDateTime(
-                  DateTime.now().add(const Duration(minutes: 1))),
+                DateTime.now().add(
+                  const Duration(minutes: 1),
+                ),
+              ),
               context: context,
               builder: (context, child) => child != null
                   ? Theme(
@@ -30,8 +34,9 @@ class AddAlarmButton extends StatelessWidget {
                   : const SizedBox.shrink(),
             );
             if (selectedTime != null) {
-              BlocProvider.of<CurtainsBloc>(context).add(
-                  AddOrRemoveCroneJob(CronJob.everyday(time: selectedTime)));
+              curtains.addOrRemoveAlarm(
+                CronJob.everyday(time: selectedTime),
+              );
             }
           },
           tooltip: 'add alarm',
@@ -40,7 +45,7 @@ class AddAlarmButton extends StatelessWidget {
         SizedBox(
           width: 56,
           height: 56,
-          child: BlocBuilder<CurtainsBloc, CurtainsState>(
+          child: BlocBuilder<CurtainsCubit, CurtainsState>(
             builder: (context, state) {
               return state is CurtainsBusy
                   ? CircularProgressIndicator(
@@ -48,8 +53,7 @@ class AddAlarmButton extends StatelessWidget {
                     )
                   : FloatingActionButton(
                       backgroundColor: openColor,
-                      onPressed: () => BlocProvider.of<CurtainsBloc>(context)
-                          .add(OpenEvent()),
+                      onPressed: () => context.read<CurtainsCubit>().open(),
                       tooltip: 'open curtains',
                       child: const Icon(Icons.flare),
                     );
@@ -72,18 +76,17 @@ class AlarmPage extends StatelessWidget {
       appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.phonelink_off),
-            onPressed: () =>
-                BlocProvider.of<CurtainsBloc>(context).add(Disconnect()),
+            onPressed: () => context.read<CurtainsCubit>().disconnect(),
           ),
           title: Text(title)),
       body: RefreshIndicator(
         onRefresh: () async {
-          BlocProvider.of<CurtainsBloc>(context).add(RefreshEvent());
+          context.read<CurtainsCubit>().refresh();
           await Future.delayed(const Duration(milliseconds: 100));
         },
         child: ListView.builder(
           itemCount: alarms.length,
-          itemBuilder: (BuildContext context, int index) {
+          itemBuilder: (context, index) {
             final a = alarms[index];
             return Padding(
               padding: const EdgeInsets.all(8.0),
@@ -93,8 +96,7 @@ class AlarmPage extends StatelessWidget {
                 direction: DismissDirection.endToStart,
                 confirmDismiss: confirmDismissCallback(a, context),
                 onDismissed: (dircetion) =>
-                    BlocProvider.of<CurtainsBloc>(context)
-                        .add(AddOrRemoveCroneJob(a)),
+                    context.read<CurtainsCubit>().addOrRemoveAlarm(a),
                 background: Container(
                   alignment: AlignmentDirectional.centerStart,
                   child: Icon(
@@ -116,22 +118,26 @@ class AlarmPage extends StatelessWidget {
   ConfirmDismissCallback confirmDismissCallback(
       CronJob alarm, BuildContext context) {
     return (direction) {
-      final c = Completer<bool>();
+      final completer = Completer<bool>();
       const duration = Duration(milliseconds: 1200);
       Timer(duration, () {
-        if (!c.isCompleted) c.complete(true);
+        if (!completer.isCompleted) completer.complete(true);
       });
-      final scaffold = ScaffoldMessenger.of(context);
-      scaffold.removeCurrentSnackBar();
-      scaffold.showSnackBar(SnackBar(
-          duration: duration - const Duration(milliseconds: 200),
-          content: Text('${alarm.time.format(context)} removed'),
-          action: SnackBarAction(
+      ScaffoldMessenger.of(context)
+        ..removeCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            duration: duration - const Duration(milliseconds: 200),
+            content: Text('${alarm.time.format(context)} removed'),
+            action: SnackBarAction(
               label: 'undo',
               onPressed: () {
-                if (!c.isCompleted) c.complete(false);
-              })));
-      return c.future;
+                if (!completer.isCompleted) completer.complete(false);
+              },
+            ),
+          ),
+        );
+      return completer.future;
     };
   }
 }

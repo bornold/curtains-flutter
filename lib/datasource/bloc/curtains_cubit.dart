@@ -1,55 +1,71 @@
 import 'dart:async';
 
-import 'package:bloc/bloc.dart';
+import 'package:curtains/constants.dart';
+import 'package:curtains/datasource/connection.dart';
 import 'package:curtains/models/connection_info.dart';
 import 'package:curtains/models/cronjob.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
+
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../constants.dart';
-import '../connection.dart';
 
-part 'curtains_event.dart';
+
+
 part 'curtains_state.dart';
 
-class CurtainsBloc extends Bloc<CurtainsEvent, CurtainsState> {
-  CurtainsBloc() : super(CurtainsConnecting()) {
-    on<ConnectEvent>(_onConnectEvent);
-    on<Disconnect>(_onDisconnect);
-    on<RefreshEvent>(_onRefresh);
-    on<UpdateCroneJob>(_handelAlarmUpdate);
-    on<AddOrRemoveCroneJob>(_handleAddOrRemoveAlarm);
-    on<OpenEvent>(_onOpen);
-  }
+class CurtainsCubit extends Cubit<CurtainsState> {
+  CurtainsCubit({required this.assetBundle}) : super(CurtainsConnecting());
 
   Connection? _connection;
+  final AssetBundle assetBundle;
 
-  Future<void> _onConnectEvent(
-    ConnectEvent event,
-    Emitter<CurtainsState> emit,
-  ) async {
+  Future<void> connect(final ConnectionInfo connectionInfo) async {
     try {
       emit(CurtainsConnecting());
-      final connectionInfo = event.connectionInfo;
+
       if (connectionInfo is SSHConnectionInfo) {
         _connection = SSHConnection(connectionInfo);
       } else if (connectionInfo is RestfullConnectionInfo) {
         _connection = RestfullConnection(connectionInfo);
       }
       await _connection?.connect();
-      emit(await _refresh());
+      return await _refresh();
     } catch (e) {
       debugPrint(e.toString());
       emit(CurtainsDisconnected(e));
     }
   }
 
-  Future<void> _onDisconnect(
-    Disconnect event,
-    Emitter<CurtainsState> emit,
-  ) async {
+  Future<void> checkConnection() async {
+    final connectionInfo = await getConnectionInfo();
+    if (connectionInfo != null) {
+      connect(connectionInfo);
+    } else {
+      disconnect();
+    }
+  }
+
+  Future<ConnectionInfo?> getConnectionInfo() async {
+    final sharedPreferences = await SharedPreferences.getInstance();
+    if (sharedPreferences.getBool(autoconnectPrefsKey) ?? false) {
+      final ip = sharedPreferences.getString(adressPrefsKey);
+      final port = sharedPreferences.getInt(portPrefsKey);
+      final passphrase = sharedPreferences.getString(passphraseSercureKey);
+
+      if (ip != null && port != null && passphrase != null) {
+        final sshkey = await assetBundle.loadString(privateKeyPath);
+        return SSHConnectionInfo(
+            host: ip, port: port, privatekey: sshkey, passphrase: passphrase);
+      }
+    }
+    return null;
+  }
+
+  Future<void> disconnect() async {
     try {
       _connection?.disconnect();
     } catch (e) {
@@ -59,16 +75,16 @@ class CurtainsBloc extends Bloc<CurtainsEvent, CurtainsState> {
     }
   }
 
-  Future<void> _onRefresh(_, Emitter<CurtainsState> emit) async {
+  Future<void> refresh() async {
     try {
-      emit(await _refresh());
+      return await _refresh();
     } catch (e) {
       debugPrint(e.toString());
       emit(CurtainsDisconnected());
     }
   }
 
-  Future<void> _onOpen(OpenEvent event, Emitter<CurtainsState> emit) async {
+  Future<void> open() async {
     try {
       final s = state;
       if (s is CurtainsConnected) {
@@ -84,26 +100,22 @@ class CurtainsBloc extends Bloc<CurtainsEvent, CurtainsState> {
     }
   }
 
-  Future _handleAddOrRemoveAlarm(
-    AddOrRemoveCroneJob event,
-    Emitter<CurtainsState> emit,
-  ) async {
+  Future addOrRemoveAlarm(final CronJob cronJob) async {
     try {
       final oldState = state;
       if (oldState is CurtainsConnected) {
         final alarms = oldState.alarms.toList();
-        final job = event.cronJob;
-        if (alarms.remove(job)) {
-          final alarmEscaped = RegExp.escape(event.toString());
+        if (alarms.remove(cronJob)) {
+          final alarmEscaped = RegExp.escape(cronJob.toString());
           final remove = "crontab -l | grep -v '^$alarmEscaped\$' | crontab -";
           debugPrint(remove);
           await executeAndReconnectOnFail(() => _connection?.execute(remove));
         } else {
-          final add = '(crontab -l ; echo "$event") | crontab -';
+          final add = '(crontab -l ; echo "$cronJob") | crontab -';
           debugPrint(add);
           await executeAndReconnectOnFail(() => _connection?.execute(add));
         }
-        emit(await _refresh());
+        return await _refresh();
       }
     } catch (e) {
       debugPrint(e.toString());
@@ -111,19 +123,17 @@ class CurtainsBloc extends Bloc<CurtainsEvent, CurtainsState> {
     }
   }
 
-  Future<void> _handelAlarmUpdate(
-      UpdateCroneJob event, Emitter<CurtainsState> emit) async {
+  Future<void> update(final CronJob cronJob) async {
     try {
       final s = state;
       if (s is CurtainsConnected) {
-        final newAlarm = event.cronJob;
-        final uuidEscaped = RegExp.escape(newAlarm.uuid);
+        final uuidEscaped = RegExp.escape(cronJob.uuid);
         final updateCommand =
-            "(crontab -l | grep -v '#$uuidEscaped\$' ; echo \"$newAlarm\") | crontab -";
+            "(crontab -l | grep -v '#$uuidEscaped\$' ; echo \"$cronJob\") | crontab -";
         debugPrint(updateCommand);
         await executeAndReconnectOnFail(
             () => _connection?.execute(updateCommand));
-        emit(await _refresh());
+        return await _refresh();
       }
     } catch (e) {
       debugPrint(e.toString());
@@ -131,13 +141,16 @@ class CurtainsBloc extends Bloc<CurtainsEvent, CurtainsState> {
     }
   }
 
-  Future<CurtainsState> _refresh() async {
+  Future<void> _refresh() async {
     notCommentOrWhitspace(String line) =>
         !line.startsWith('#') && line.trim().isNotEmpty;
     debugPrint('fetching cronjobs');
-    final String res = await executeAndReconnectOnFail(
+    final String? res = await executeAndReconnectOnFail(
         () => _connection?.execute("crontab -l"));
     debugPrint('cronjobs result: $res');
+    if (res == null) {
+      return disconnect();
+    }
     final cronJobs = res
         .split(RegExp(r'[\n?\r]'))
         .where(notCommentOrWhitspace)
@@ -147,10 +160,11 @@ class CurtainsBloc extends Bloc<CurtainsEvent, CurtainsState> {
     for (var c in cronJobs) {
       debugPrint(c.toString());
     }
-    return CurtainsConnected(cronJobs);
+    emit(CurtainsConnected(cronJobs));
   }
 
-  Future executeAndReconnectOnFail(Function f, {int depth = 0}) async {
+  Future<T> executeAndReconnectOnFail<T>(FutureOr<T> Function() f,
+      {int depth = 0}) async {
     try {
       return await f();
     } on PlatformException catch (pe) {

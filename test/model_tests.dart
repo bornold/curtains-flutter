@@ -115,8 +115,8 @@ void main() {
       const timeIn = TimeOfDay(hour: 15, minute: 45);
       final job = CronJob.everyday(time: timeIn);
 
-      expectH(job.toString(),
-          '45 15 * * mon,tue,wed,thu,fri,sat,sun ' + openCommand);
+      expectH(
+          job.toString(), '45 15 * * mon,tue,wed,thu,fri,sat,sun $openCommand');
       expect(job.days, Day.values.toSet());
       expect(job.time, timeIn);
     });
@@ -137,7 +137,7 @@ void main() {
       const command = 'pwd aabs test liong command -s';
       final job = CronJob(command: command, time: timeIn, days: daysIn);
 
-      expectH(job.toString(), '34 12 * * mon,wed,sun ' + command);
+      expectH(job.toString(), '34 12 * * mon,wed,sun $command');
       expect(job.days, daysIn);
       expect(job.time, timeIn);
       expect(job.command, command);

@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:curtains/datasource/bloc/curtains_bloc.dart';
+import 'package:curtains/datasource/bloc/curtains_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,7 +13,7 @@ class ConnectionSettings extends StatefulWidget {
   const ConnectionSettings({this.error, Key? key}) : super(key: key);
   final Object? error;
   @override
-  _ConnectionSettingsState createState() => _ConnectionSettingsState();
+  State createState() => _ConnectionSettingsState();
 }
 
 class _ConnectionSettingsState extends State<ConnectionSettings> {
@@ -27,7 +27,7 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
       } else if (error.message == errorSessionDown) {
         return 'lost connection';
       } else {
-        print(error);
+        debugPrint('$error');
         return 'connection error, wrong ip or port?';
       }
     } else {
@@ -182,6 +182,7 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
             final inputPassphrase = _passphraseController.text;
             final passphrase =
                 inputPassphrase.isEmpty ? _storedPassphrase : inputPassphrase;
+            final curtains = context.read<CurtainsCubit>();
             final sshkey =
                 await DefaultAssetBundle.of(context).loadString(privateKeyPath);
 
@@ -197,7 +198,7 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
                   port: port,
                   privatekey: sshkey,
                   passphrase: passphrase);
-              BlocProvider.of<CurtainsBloc>(context).add(ConnectEvent(cInfo));
+              curtains.connect(cInfo);
             }
           }
         },

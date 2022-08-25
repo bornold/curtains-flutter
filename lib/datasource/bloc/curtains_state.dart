@@ -1,4 +1,4 @@
-part of 'curtains_bloc.dart';
+part of 'curtains_cubit.dart';
 
 @immutable
 abstract class CurtainsState extends Equatable {

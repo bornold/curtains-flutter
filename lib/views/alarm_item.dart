@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
 
-import 'package:curtains/datasource/bloc/curtains_bloc.dart';
+import 'package:curtains/datasource/bloc/curtains_cubit.dart';
 import 'package:curtains/helper/day_to_string.dart';
 import 'package:curtains/models/cronjob.dart';
 
@@ -35,6 +35,7 @@ class AlarmItem extends StatelessWidget {
                 child: Text(alarm.time.format(context),
                     style: theme.textTheme.headline3),
                 onPressed: () async {
+                  final curtains = context.read<CurtainsCubit>();
                   TimeOfDay? selectedTime = await showTimePicker(
                     initialTime: alarm.time,
                     context: context,
@@ -46,8 +47,9 @@ class AlarmItem extends StatelessWidget {
                         : const SizedBox.shrink(),
                   );
                   if (selectedTime != null) {
-                    BlocProvider.of<CurtainsBloc>(context).add(UpdateCroneJob(
-                        CronJob.clone(from: alarm, newTime: selectedTime)));
+                    curtains.update(
+                      CronJob.clone(from: alarm, newTime: selectedTime),
+                    );
                   }
                 },
               ),
@@ -92,7 +94,6 @@ class DayToggler extends StatelessWidget {
                   MaterialStateProperty.all(theme.primaryColorDark),
               backgroundColor:
                   MaterialStateProperty.all(theme.colorScheme.primary),
-                  
             )
           : ButtonStyle(
               shape: MaterialStateProperty.all(const CircleBorder()),
@@ -108,8 +109,9 @@ class DayToggler extends StatelessWidget {
       onPressed: () {
         var oldDays = alarm.days.toSet();
         if (!oldDays.remove(d)) oldDays.add(d);
-        BlocProvider.of<CurtainsBloc>(context)
-            .add(UpdateCroneJob(CronJob.clone(from: alarm, newDays: oldDays)));
+        context.read<CurtainsCubit>().update(
+              CronJob.clone(from: alarm, newDays: oldDays),
+            );
       },
     );
   }
