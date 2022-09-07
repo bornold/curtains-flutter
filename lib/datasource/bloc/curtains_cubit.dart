@@ -1,9 +1,11 @@
 import 'dart:async';
 
-import 'package:curtains/constants.dart';
 import 'package:curtains/datasource/connection.dart';
+import 'package:curtains/datasource/repositories/assets.dart';
+import 'package:curtains/datasource/repositories/preferenses.dart';
 import 'package:curtains/models/connection_info.dart';
 import 'package:curtains/models/cronjob.dart';
+import 'package:curtains/views/connection.dart';
 import 'package:equatable/equatable.dart';
 
 import 'package:flutter/material.dart';
@@ -42,16 +44,19 @@ class CurtainsCubit extends Cubit<CurtainsState> {
   }
 
   Future<SSHConnectionInfo?> getConnectionInfo() async {
-    final sharedPreferences = await SharedPreferences.getInstance();
-    if (sharedPreferences.getBool(autoconnectPrefsKey) ?? false) {
-      final ip = sharedPreferences.getString(adressPrefsKey);
-      final port = sharedPreferences.getInt(portPrefsKey);
-      final passphrase = sharedPreferences.getString(passphraseSercureKey);
-
-      if (ip != null && port != null && passphrase != null) {
-        final sshkey = await assetBundle.loadString(privateKeyPath);
+    final preferences = Preferences(await SharedPreferences.getInstance());
+    if (preferences.autoconnect) {
+      final ip = preferences.ip;
+      final port = preferences.port;
+      final passphrase = preferences.passphrase;
+      if (ip.isNotEmpty && passphrase.isNotEmpty) {
+        final sshkey = await Assets(assetBundle).sshkey;
         return SSHConnectionInfo(
-            host: ip, port: port, privatekey: sshkey, passphrase: passphrase);
+          host: ip,
+          port: port,
+          privatekey: sshkey,
+          passphrase: passphrase,
+        );
       }
     }
     return null;
@@ -83,7 +88,7 @@ class CurtainsCubit extends Cubit<CurtainsState> {
         final alarms = s.alarms.toList();
         emit(CurtainsBusy(alarms));
         await executeAndReconnectOnFail(
-            () => _connection?.execute(openCommand));
+            () => _connection?.execute(CronJob.openCommand));
         emit(CurtainsConnected(alarms));
       }
     } catch (e) {
@@ -160,7 +165,7 @@ class CurtainsCubit extends Cubit<CurtainsState> {
     try {
       return await f();
     } on PlatformException catch (pe) {
-      if (pe.message == errorSessionDown && depth < 3) {
+      if (pe.message == ConnectionSettings.errorSessionDown && depth < 3) {
         debugPrint("session is down, trying to reconnect");
         _connection?.disconnect();
         await _connection?.connect().timeout(const Duration(seconds: 4));

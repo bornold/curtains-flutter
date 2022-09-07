@@ -1,10 +1,10 @@
-import '../constants.dart';
 import '../helper/day_to_string.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 class CronJob implements Comparable<CronJob> {
+  static const openCommand = '~/bin/open';
   final String command;
   final TimeOfDay time;
   final UnmodifiableListView<Day> days;

@@ -1,15 +1,20 @@
 import 'dart:async';
 
 import 'package:curtains/datasource/bloc/curtains_cubit.dart';
+import 'package:curtains/datasource/repositories/assets.dart';
+import 'package:curtains/datasource/repositories/preferenses.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../constants.dart';
 import '../models/connection_info.dart';
 
 class ConnectionSettings extends StatefulWidget {
+  static const connectionFailure = 'connection_failure',
+      errorSessionDown = 'session is down',
+      errorAuth = 'USERAUTH fail';
+      
   const ConnectionSettings({this.error, Key? key}) : super(key: key);
   final Object? error;
   @override
@@ -21,10 +26,11 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
     final error = widget.error;
     if (error is TimeoutException) {
       return 'timed out, wrong ip?';
-    } else if (error is PlatformException && error.code == connectionFailure) {
-      if (error.message == errorAuth) {
+    } else if (error is PlatformException &&
+        error.code == ConnectionSettings.connectionFailure) {
+      if (error.message == ConnectionSettings.errorAuth) {
         return 'wrong password';
-      } else if (error.message == errorSessionDown) {
+      } else if (error.message == ConnectionSettings.errorSessionDown) {
         return 'lost connection';
       } else {
         debugPrint('$error');
@@ -43,7 +49,7 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
   final _formKey = GlobalKey<FormState>();
   String _passwordHintText = 'enter passphrase';
   String _passwordLabelText = 'passphrase';
-  String? _storedPassphrase;
+  late String _storedPassphrase;
 
   @override
   void initState() {
@@ -52,11 +58,11 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
   }
 
   void _setPrefs() async {
-    final prefs = await SharedPreferences.getInstance();
-    _adressController.text = prefs.getString(adressPrefsKey) ?? '';
-    _portController.text = '${prefs.getInt(portPrefsKey) ?? 22}';
-    _storedPassphrase = prefs.getString(passphraseSercureKey);
-    if (_storedPassphrase != null) {
+    final prefs = Preferences(await SharedPreferences.getInstance());
+    _adressController.text = prefs.ip;
+    _portController.text = '${prefs.port}';
+    _storedPassphrase = prefs.passphrase;
+    if (_storedPassphrase.isEmpty) {
       setState(() {
         _passwordHintText = 'unchanged';
         _passwordLabelText = 'passphrase (empty for unchanged)';
@@ -134,7 +140,7 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
               ),
               TextFormField(
                 validator: (s) {
-                  if (s == null || s.isEmpty && _storedPassphrase == null) {
+                  if (s == null || s.isEmpty && _storedPassphrase.isEmpty) {
                     return 'must enter passphrase';
                   }
                   return null;
@@ -183,23 +189,20 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
             final passphrase =
                 inputPassphrase.isEmpty ? _storedPassphrase : inputPassphrase;
             final curtains = context.read<CurtainsCubit>();
-            final sshkey =
-                await DefaultAssetBundle.of(context).loadString(privateKeyPath);
+            final sshkey = await Assets(DefaultAssetBundle.of(context)).sshkey;
 
-            final prefs = await SharedPreferences.getInstance();
-            prefs.setInt(portPrefsKey, port);
-            prefs.setString(adressPrefsKey, ip);
-            prefs.setBool(autoconnectPrefsKey, autoconnect);
-            if (passphrase != null) {
-              prefs.setString(passphraseSercureKey, passphrase);
-
-              final cInfo = SSHConnectionInfo(
-                  host: ip,
-                  port: port,
-                  privatekey: sshkey,
-                  passphrase: passphrase);
-              curtains.connect(cInfo);
-            }
+            Preferences(await SharedPreferences.getInstance())
+              ..port = port
+              ..ip = ip
+              ..autoconnect = autoconnect
+              ..passphrase = passphrase;
+            final cInfo = SSHConnectionInfo(
+              host: ip,
+              port: port,
+              privatekey: sshkey,
+              passphrase: passphrase,
+            );
+            curtains.connect(cInfo);
           }
         },
       ),
