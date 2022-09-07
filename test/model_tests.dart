@@ -3,8 +3,6 @@ library model_tests;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:uuid/uuid.dart';
-
-import 'package:curtains/constants.dart';
 import 'package:curtains/models/cronjob.dart';
 
 void main() {
@@ -115,8 +113,8 @@ void main() {
       const timeIn = TimeOfDay(hour: 15, minute: 45);
       final job = CronJob.everyday(time: timeIn);
 
-      expectH(
-          job.toString(), '45 15 * * mon,tue,wed,thu,fri,sat,sun $openCommand');
+      expectH(job.toString(),
+          '45 15 * * mon,tue,wed,thu,fri,sat,sun ${CronJob.openCommand}');
       expect(job.days, Day.values.toSet());
       expect(job.time, timeIn);
     });

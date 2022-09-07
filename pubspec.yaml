@@ -26,7 +26,14 @@ flutter_icons:
   ios: true
   image_path_android: "assets/icon_android.png"
   image_path_ios: "assets/icon_ios.png"
-
+  windows:
+    generate: true
+    image_path: "assets/icon_android.png"
+    icon_size: 48
+  macOs:
+    generate: true
+    image_path: "assets/icon_ios.png"
+  
 flutter:
   uses-material-design: true
   assets:
