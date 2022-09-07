@@ -1,64 +1,46 @@
-import 'dart:io';
+import 'dart:async';
+import 'dart:convert';
 
 import 'package:curtains/models/connection_info.dart';
+import 'package:dartssh2/dartssh2.dart';
 import 'package:flutter/foundation.dart';
-import 'package:ssh2/ssh2.dart';
-
-import '../constants.dart';
 
 abstract class Connection {
   Future<String?> execute(String cmd);
-  Future<String?> connect();
-  void disconnect();
+  Future<void> connect();
+  FutureOr<void> disconnect();
 }
 
 class SSHConnection implements Connection {
-  SSHConnection(SSHConnectionInfo connectionInfo) {
-    _sshClient = SSHClient(
-        username: connectionInfo.user,
-        host: connectionInfo.host,
-        port: connectionInfo.port,
-        passwordOrKey: {
-          "privateKey": connectionInfo.privatekey,
-          "passphrase": connectionInfo.passphrase,
-        });
-    _sshClient.stateSubscription.onData((d) => debugPrint(d.toString()));
-  }
+  final SSHConnectionInfo connectionInfo;
+  SSHConnection(this.connectionInfo);
 
   late SSHClient _sshClient;
 
-  void handelConnectionInfoChanged(SSHConnectionInfo connectionInfo) {
-    _sshClient.username = connectionInfo.user;
-    _sshClient.host = connectionInfo.host;
-    _sshClient.port = connectionInfo.port;
-    _sshClient.passwordOrKey = {
-      "privateKey": connectionInfo.privatekey,
-      "passphrase": connectionInfo.passphrase,
-    };
+  @override
+  Future<void> connect() async {
+    _sshClient = SSHClient(
+      await SSHSocket.connect(connectionInfo.host, connectionInfo.port),
+      username: connectionInfo.user,
+      identities: [
+        ...SSHKeyPair.fromPem(
+          connectionInfo.privatekey,
+          connectionInfo.passphrase,
+        )
+      ],
+      printDebug: debugPrint,
+      printTrace: debugPrint,
+    );
+    await _sshClient.authenticated;
   }
 
   @override
-  Future<String?> connect() => _sshClient.connect();
-
-  @override
-  void disconnect() => _sshClient.disconnect();
-
-  @override
-  Future<String?> execute(String cmd) => _sshClient.execute(cmd);
-}
-
-class RestfullConnection implements Connection {
-  RestfullConnection(RestfullConnectionInfo connectionInfo);
-  @override
-  Future<String> connect() => Future.value(connectionOk);
-
-  @override
-  void disconnect() {}
-
-  @override
-  Future<String> execute(String cmd) async {
-    final result = await Process.run(cmd, [], runInShell: true);
-    if (result.exitCode == 0) return result.stdout;
-    return result.stderr;
+  Future<void> disconnect() async {
+    _sshClient.close();
+    await _sshClient.done;
   }
+
+  @override
+  Future<String?> execute(String cmd) async =>
+      utf8.decode(await _sshClient.run(cmd));
 }

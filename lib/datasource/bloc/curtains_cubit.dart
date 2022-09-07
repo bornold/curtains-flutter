@@ -12,9 +12,6 @@ import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-
-
-
 part 'curtains_state.dart';
 
 class CurtainsCubit extends Cubit<CurtainsState> {
@@ -23,15 +20,10 @@ class CurtainsCubit extends Cubit<CurtainsState> {
   Connection? _connection;
   final AssetBundle assetBundle;
 
-  Future<void> connect(final ConnectionInfo connectionInfo) async {
+  Future<void> connect(final SSHConnectionInfo connectionInfo) async {
     try {
       emit(CurtainsConnecting());
-
-      if (connectionInfo is SSHConnectionInfo) {
-        _connection = SSHConnection(connectionInfo);
-      } else if (connectionInfo is RestfullConnectionInfo) {
-        _connection = RestfullConnection(connectionInfo);
-      }
+      _connection = SSHConnection(connectionInfo);
       await _connection?.connect();
       return await _refresh();
     } catch (e) {
@@ -49,7 +41,7 @@ class CurtainsCubit extends Cubit<CurtainsState> {
     }
   }
 
-  Future<ConnectionInfo?> getConnectionInfo() async {
+  Future<SSHConnectionInfo?> getConnectionInfo() async {
     final sharedPreferences = await SharedPreferences.getInstance();
     if (sharedPreferences.getBool(autoconnectPrefsKey) ?? false) {
       final ip = sharedPreferences.getString(adressPrefsKey);
