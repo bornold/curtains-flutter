@@ -18,13 +18,6 @@ final theme = ThemeData.dark().copyWith(
     iconTheme: const IconThemeData(color: accentColor),
     titleTextStyle: TextStyle(color: Colors.grey[100], fontSize: 24),
   ),
-  toggleableActiveColor: accentColor,
-  textTheme: TextTheme(
-    subtitle1: TextStyle(
-      color: Colors.grey[400],
-      fontSize: 18,
-    ),
-  ),
   floatingActionButtonTheme:
       const FloatingActionButtonThemeData(backgroundColor: accentColor),
   cardTheme: const CardTheme(

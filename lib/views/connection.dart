@@ -94,8 +94,8 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
               Text(_errorMessage,
                   style: Theme.of(context)
                       .textTheme
-                      .bodyText2
-                      ?.apply(color: Theme.of(context).errorColor)),
+                      .bodyMedium
+                      ?.apply(color: Theme.of(context).colorScheme.error)),
               const Spacer(
                 flex: 4,
               ),
@@ -168,7 +168,7 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
                       onChanged: (v) => setState(() => autoconnect = v)),
                   Text(
                     'auto connect',
-                    style: Theme.of(context).primaryTextTheme.subtitle1,
+                    style: Theme.of(context).primaryTextTheme.headlineSmall,
                   ),
                 ],
               ),

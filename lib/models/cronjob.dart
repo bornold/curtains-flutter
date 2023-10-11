@@ -37,7 +37,7 @@ class CronJob implements Comparable<CronJob> {
         );
 
   static CronJob? parse(String raw) {
-    Day? _parseDay(String dayStr) =>
+    Day? parseDay(String dayStr) =>
         Day.values.firstWhereOrNull((e) => e.toString() == 'Day.$dayStr');
     int uuidPart = raw.lastIndexOf('#');
     String uuid;
@@ -53,7 +53,7 @@ class CronJob implements Comparable<CronJob> {
     final dayPart = splitted.removeAt(0);
     final days = dayPart == '*'
         ? Set<Day>.identity()
-        : dayPart.split(',').map(_parseDay).whereNotNull().toSet();
+        : dayPart.split(',').map(parseDay).whereNotNull().toSet();
 
     final command = splitted.join(' ');
     final time = TimeOfDay(hour: hour, minute: min);

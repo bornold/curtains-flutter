@@ -9,7 +9,7 @@ String capitalize(String s) {
 }
 
 String daysToSentence(Iterable<Day> days) {
-  String _dayToString(Day day) {
+  String dayToString(Day day) {
     switch (day) {
       case Day.mon:
         return 'monday';
@@ -30,7 +30,7 @@ String daysToSentence(Iterable<Day> days) {
     }
   }
 
-  Day _findFirstDay(Iterable<Day> dayChain) {
+  Day findFirstDay(Iterable<Day> dayChain) {
     if (dayChain.contains(Day.mon)) {
       var firstDay = Day.mon;
       for (final d in Day.values.reversed) {
@@ -53,14 +53,14 @@ String daysToSentence(Iterable<Day> days) {
   nextDay(d) => (d + 1) % Day.values.length;
   dayToIndex(d) => Day.values.indexOf(d);
   indexToDay(i) => Day.values[i];
-  int _dist(int d1Index, int d2Index) {
+  int dist(int d1Index, int d2Index) {
     return (d1Index > d2Index)
         ? Day.values.length - d1Index + d2Index + 1
         : d2Index - d1Index + 1;
   }
 
-  String _longestDayChain(Iterable<Day> dayChain) {
-    Day firstDay = _findFirstDay(dayChain);
+  String longestDayChain(Iterable<Day> dayChain) {
+    Day firstDay = findFirstDay(dayChain);
     int firstDayIndex = dayToIndex(firstDay);
     int lastDayIndex = firstDayIndex;
     int currentFirstDayIndex = firstDayIndex;
@@ -72,10 +72,10 @@ String daysToSentence(Iterable<Day> days) {
         if (currentFirstDayIndex < 0) currentFirstDayIndex = i;
         lastDayIndex = i;
       } else if (currentFirstDayIndex > -1) {
-        final d1 = _dayToString(indexToDay(currentFirstDayIndex));
-        final d2 = _dayToString(indexToDay(lastDayIndex));
+        final d1 = dayToString(indexToDay(currentFirstDayIndex));
+        final d2 = dayToString(indexToDay(lastDayIndex));
 
-        int containingDays = _dist(currentFirstDayIndex, lastDayIndex);
+        int containingDays = dist(currentFirstDayIndex, lastDayIndex);
 
         if (containingDays < 2) {
           entities.add(d1);
@@ -89,7 +89,7 @@ String daysToSentence(Iterable<Day> days) {
     }
 
     if (currentFirstDayIndex > -1) {
-      entities.add(_dayToString(indexToDay(currentFirstDayIndex)));
+      entities.add(dayToString(indexToDay(currentFirstDayIndex)));
     }
 
     if (entities.length > 1) {
@@ -102,7 +102,7 @@ String daysToSentence(Iterable<Day> days) {
 
   if (days.isEmpty) return '';
   if (days.toSet().containsAll(Day.values.toSet())) return 'everyday';
-  return _longestDayChain(days);
+  return longestDayChain(days);
 }
 
 String daysToString(UnmodifiableListView<Day> days) => days.isEmpty

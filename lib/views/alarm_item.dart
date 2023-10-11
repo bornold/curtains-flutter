@@ -33,7 +33,7 @@ class AlarmItem extends StatelessWidget {
                       const EdgeInsets.fromLTRB(0, 16, 0, 8)),
                 ),
                 child: Text(alarm.time.format(context),
-                    style: theme.textTheme.headline3),
+                    style: theme.textTheme.headlineSmall),
                 onPressed: () async {
                   final curtains = context.read<CurtainsCubit>();
                   TimeOfDay? selectedTime = await showTimePicker(
