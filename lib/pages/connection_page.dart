@@ -91,11 +91,13 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
               const Spacer(
                 flex: 4,
               ),
-              Text(_errorMessage,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
-                      ?.apply(color: Theme.of(context).colorScheme.error)),
+              Text(
+                _errorMessage,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.apply(color: Theme.of(context).colorScheme.error),
+              ),
               const Spacer(
                 flex: 4,
               ),

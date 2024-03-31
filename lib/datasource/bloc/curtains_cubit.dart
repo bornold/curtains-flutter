@@ -5,7 +5,7 @@ import 'package:curtains/datasource/repositories/assets.dart';
 import 'package:curtains/datasource/repositories/preferenses.dart';
 import 'package:curtains/models/connection_info.dart';
 import 'package:curtains/models/cronjob.dart';
-import 'package:curtains/views/connection.dart';
+import 'package:curtains/pages/connection_page.dart';
 import 'package:equatable/equatable.dart';
 
 import 'package:flutter/material.dart';

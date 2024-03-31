@@ -3,8 +3,8 @@ import 'package:curtains/theme.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'views/alarm_page.dart';
-import 'views/connection.dart';
+import 'pages/alarm_page.dart';
+import 'pages/connection_page.dart';
 import 'package:flutter/material.dart';
 
 void main() {

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:curtains/views/add_alarm_button.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
 
@@ -7,69 +8,34 @@ import 'package:curtains/datasource/bloc/curtains_cubit.dart';
 import 'package:curtains/models/cronjob.dart';
 import 'package:curtains/views/alarm_item.dart';
 
-class AddAlarmButton extends StatelessWidget {
-  const AddAlarmButton({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final openColor = Theme.of(context).highlightColor;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: <Widget>[
-        FloatingActionButton(
-          onPressed: () async {
-            final curtains = context.read<CurtainsCubit>();
-            TimeOfDay? selectedTime = await showTimePicker(
-              initialTime: TimeOfDay.fromDateTime(
-                DateTime.now().add(
-                  const Duration(minutes: 1),
-                ),
-              ),
-              context: context,
-              builder: (context, child) => child != null
-                  ? Theme(
-                      data: Theme.of(context),
-                      child: child,
-                    )
-                  : const SizedBox.shrink(),
-            );
-            if (selectedTime != null) {
-              curtains.addOrRemoveAlarm(
-                CronJob.everyday(time: selectedTime),
-              );
-            }
-          },
-          tooltip: 'add alarm',
-          child: const Icon(Icons.alarm_add),
-        ),
-        SizedBox(
-          width: 56,
-          height: 56,
-          child: BlocBuilder<CurtainsCubit, CurtainsState>(
-            builder: (context, state) {
-              return state is CurtainsBusy
-                  ? CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(openColor),
-                    )
-                  : FloatingActionButton(
-                      backgroundColor: openColor,
-                      onPressed: () => context.read<CurtainsCubit>().open(),
-                      tooltip: 'open curtains',
-                      child: const Icon(Icons.flare),
-                    );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class AlarmPage extends StatelessWidget {
+class AlarmPage extends StatefulWidget {
   final List<CronJob> alarms;
-  final String title = 'curtains';
 
   const AlarmPage(this.alarms, {Key? key}) : super(key: key);
+
+  @override
+  State<AlarmPage> createState() => _AlarmPageState();
+}
+
+class _AlarmPageState extends State<AlarmPage> {
+  late final AppLifecycleListener _listener;
+
+  final String title = 'curtains';
+
+  @override
+  void initState() {
+    super.initState();
+    _listener = AppLifecycleListener(
+      onResume: () => context.read<CurtainsCubit>().refresh(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _listener.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -85,9 +51,9 @@ class AlarmPage extends StatelessWidget {
           await Future.delayed(const Duration(milliseconds: 100));
         },
         child: ListView.builder(
-          itemCount: alarms.length,
+          itemCount: widget.alarms.length,
           itemBuilder: (context, index) {
-            final a = alarms[index];
+            final a = widget.alarms[index];
             return Padding(
               padding: const EdgeInsets.all(8.0),
               child: Dismissible(
