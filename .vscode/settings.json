@@ -1,0 +1,6 @@
+{
+    "dart.analyzeAngularTemplates": false,
+    "[dart]": {
+        "editor.formatOnSave": true
+    }
+}

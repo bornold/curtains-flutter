@@ -21,16 +21,17 @@ final theme = ThemeData.dark().copyWith(
   floatingActionButtonTheme:
       const FloatingActionButtonThemeData(backgroundColor: accentColor),
   cardTheme: const CardTheme(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(16.0),
-          topRight: Radius.circular(16.0),
-          bottomLeft: Radius.circular(4.0),
-          bottomRight: Radius.circular(4.0),
-        ),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.only(
+        topLeft: Radius.circular(16.0),
+        topRight: Radius.circular(16.0),
+        bottomLeft: Radius.circular(4.0),
+        bottomRight: Radius.circular(4.0),
       ),
-      elevation: 4,
-      margin: EdgeInsets.fromLTRB(4, 4, 4, 0)),
+    ),
+    elevation: 4,
+    margin: EdgeInsets.fromLTRB(4, 4, 4, 0),
+  ),
   buttonTheme: ButtonThemeData(
     minWidth: 36,
     padding: EdgeInsets.zero,

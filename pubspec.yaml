@@ -8,32 +8,25 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  collection: ^1.16.0
-  dartssh2: ^2.7.2+3
-  equatable: ^2.0.3
-  flutter_bloc: ^8.0.1
-  shared_preferences: ^2.0.9
-  uuid: ^3.0.4
+  collection: ^1.18.0
+  dartssh2: ^2.8.2
+  equatable: ^2.0.5
+  flutter_bloc: ^8.1.5
+  shared_preferences: ^2.2.2
+  uuid: ^4.3.3
 
 dev_dependencies:
-  flutter_launcher_icons: ^0.10.0
+  flutter_launcher_icons: ^0.13.1
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.1
+  flutter_lints: ^3.0.2
 
 flutter_icons:
   android: "ic_launcher"
   ios: true
   image_path_android: "assets/icon_android.png"
   image_path_ios: "assets/icon_ios.png"
-  windows:
-    generate: true
-    image_path: "assets/icon_android.png"
-    icon_size: 48
-  macOs:
-    generate: true
-    image_path: "assets/icon_ios.png"
-  
+
 flutter:
   uses-material-design: true
   assets:
