@@ -9,13 +9,13 @@ class RestfullConnectionInfo extends ConnectionInfo {
 }
 
 class SSHConnectionInfo extends ConnectionInfo {
-  SSHConnectionInfo(
-      {this.user = 'pi',
-      required String host,
-      required int port,
-      required this.privatekey,
-      required this.passphrase})
-      : assert(port > 0),
+  SSHConnectionInfo({
+    required this.user,
+    required String host,
+    required int port,
+    required this.privatekey,
+    required this.passphrase,
+  })  : assert(port > 0),
         assert(port < 65535),
         super(host, port);
   final String user, privatekey, passphrase;

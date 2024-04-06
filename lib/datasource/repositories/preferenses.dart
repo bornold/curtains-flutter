@@ -4,6 +4,7 @@ class Preferences {
   static const adressPrefsKey = 'adress_prefs_key',
       portPrefsKey = 'port_prefs_key',
       passphraseSercureKey = 'passphrase_sercure_key',
+      usernameKey = 'username_key',
       sshSercureKey = 'ssh_sercure_key',
       autoconnectPrefsKey = 'auto_connect_prefs_key';
   final SharedPreferences sharedPreferences;
@@ -14,6 +15,9 @@ class Preferences {
   set ip(String ip) => sharedPreferences.setString(adressPrefsKey, ip);
   int get port => sharedPreferences.getInt(portPrefsKey) ?? 22;
   set port(int port) => sharedPreferences.setInt(portPrefsKey, port);
+  String get username => sharedPreferences.getString(usernameKey) ?? '';
+  set username(String username) =>
+      sharedPreferences.setString(usernameKey, username);
   String get passphrase =>
       sharedPreferences.getString(passphraseSercureKey) ?? '';
   set passphrase(String passPhrase) =>

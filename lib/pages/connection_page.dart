@@ -44,6 +44,7 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
   final _passphraseController = TextEditingController();
   final _adressController = TextEditingController();
   final _portController = TextEditingController();
+  final _nameController = TextEditingController();
   bool _hidePassphrase = true;
   bool autoconnect = true;
   final _formKey = GlobalKey<FormState>();
@@ -61,6 +62,7 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
     final prefs = Preferences(await SharedPreferences.getInstance());
     _adressController.text = prefs.ip;
     _portController.text = '${prefs.port}';
+    _nameController.text = prefs.username;
     _storedPassphrase = prefs.passphrase;
     if (_storedPassphrase.isEmpty) {
       setState(() {
@@ -74,6 +76,7 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
   void dispose() {
     _passphraseController.dispose();
     _adressController.dispose();
+    _portController.dispose();
     super.dispose();
   }
 
@@ -88,9 +91,7 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              const Spacer(
-                flex: 4,
-              ),
+              const Spacer(flex: 4),
               Text(
                 _errorMessage,
                 style: Theme.of(context)
@@ -98,9 +99,7 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
                     .bodyMedium
                     ?.apply(color: Theme.of(context).colorScheme.error),
               ),
-              const Spacer(
-                flex: 4,
-              ),
+              const Spacer(flex: 4),
               Row(
                 children: <Widget>[
                   Expanded(
@@ -118,9 +117,7 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
                       decoration: const InputDecoration(labelText: 'adress'),
                     ),
                   ),
-                  const Spacer(
-                    flex: 1,
-                  ),
+                  const Spacer(flex: 1),
                   Expanded(
                     flex: 12,
                     child: TextFormField(
@@ -137,9 +134,16 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
                   ),
                 ],
               ),
-              const Spacer(
-                flex: 1,
+              const Spacer(flex: 1),
+              TextFormField(
+                validator: (s) {
+                  if (s == null || s.isEmpty) return 'must enter username';
+                  return null;
+                },
+                controller: _nameController,
+                decoration: const InputDecoration(labelText: 'username'),
               ),
+              const Spacer(flex: 1),
               TextFormField(
                 validator: (s) {
                   if (s == null || s.isEmpty && _storedPassphrase.isEmpty) {
@@ -166,8 +170,9 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   Switch(
-                      value: autoconnect,
-                      onChanged: (v) => setState(() => autoconnect = v)),
+                    value: autoconnect,
+                    onChanged: (v) => setState(() => autoconnect = v),
+                  ),
                   Text(
                     'auto connect',
                     style: Theme.of(context).primaryTextTheme.headlineSmall,
@@ -182,31 +187,32 @@ class _ConnectionSettingsState extends State<ConnectionSettings> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.phonelink),
         onPressed: () async {
-          if (_formKey.currentState?.validate() == true) {
-            final ip = _adressController.text;
-            final port = int.tryParse(_portController.text) ?? 22;
-            final inputPassphrase = _passphraseController.text;
-            final passphrase =
-                inputPassphrase.isEmpty ? _storedPassphrase : inputPassphrase;
-            final curtains = context.read<CurtainsCubit>();
-            final sshkey = await Assets(DefaultAssetBundle.of(context)).sshkey;
+          if (!_formKey.currentState!.validate()) return;
+          final ip = _adressController.text;
+          final port = int.tryParse(_portController.text) ?? 22;
+          final inputPassphrase = _passphraseController.text;
+          final passphrase =
+              inputPassphrase.isEmpty ? _storedPassphrase : inputPassphrase;
+          final curtains = context.read<CurtainsCubit>();
+          final sshkey = await Assets(DefaultAssetBundle.of(context)).sshkey;
 
-            Preferences(await SharedPreferences.getInstance())
-              ..port = port
-              ..ip = ip
-              ..autoconnect = autoconnect
-              ..passphrase = passphrase;
-            final cInfo = SSHConnectionInfo(
-              host: ip,
-              port: port,
-              privatekey: sshkey,
-              passphrase: passphrase,
-            );
-            curtains.connect(cInfo);
-          }
+          Preferences(await SharedPreferences.getInstance())
+            ..port = port
+            ..ip = ip
+            ..autoconnect = autoconnect
+            ..passphrase = passphrase
+            ..username = _nameController.text;
+          final cInfo = SSHConnectionInfo(
+            user: _nameController.text,
+            host: ip,
+            port: port,
+            privatekey: sshkey,
+            passphrase: passphrase,
+          );
+          curtains.connect(cInfo);
         },
+        child: const Icon(Icons.phonelink),
       ),
     );
   }
