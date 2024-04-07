@@ -12,7 +12,7 @@ void main() {
 }
 
 class CurtainsApp extends StatelessWidget {
-  const CurtainsApp({Key? key}) : super(key: key);
+  const CurtainsApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +30,7 @@ class CurtainsApp extends StatelessWidget {
 }
 
 class MainPage extends StatelessWidget {
-  const MainPage({Key? key}) : super(key: key);
+  const MainPage({super.key});
 
   @override
   Widget build(BuildContext context) {

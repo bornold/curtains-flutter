@@ -49,9 +49,11 @@ class CurtainsCubit extends Cubit<CurtainsState> {
       final ip = preferences.ip;
       final port = preferences.port;
       final passphrase = preferences.passphrase;
-      if (ip.isNotEmpty && passphrase.isNotEmpty) {
+      final username = preferences.username;
+      if (ip.isNotEmpty && passphrase.isNotEmpty && username.isNotEmpty) {
         final sshkey = await Assets(assetBundle).sshkey;
         return SSHConnectionInfo(
+          user: username,
           host: ip,
           port: port,
           privatekey: sshkey,
@@ -88,7 +90,7 @@ class CurtainsCubit extends Cubit<CurtainsState> {
         final alarms = s.alarms.toList();
         emit(CurtainsBusy(alarms));
         await executeAndReconnectOnFail(
-            () => _connection?.execute(CronJob.openCommand));
+            () => _connection?.execute(openCommand));
         emit(CurtainsConnected(alarms));
       }
     } catch (e) {
@@ -142,21 +144,17 @@ class CurtainsCubit extends Cubit<CurtainsState> {
     notCommentOrWhitspace(String line) =>
         !line.startsWith('#') && line.trim().isNotEmpty;
     debugPrint('fetching cronjobs');
-    final String? res = await executeAndReconnectOnFail(
+    final String? cronJobsRaw = await executeAndReconnectOnFail(
         () => _connection?.execute("crontab -l"));
-    debugPrint('cronjobs result: $res');
-    if (res == null) {
-      return disconnect();
-    }
-    final cronJobs = res
+    debugPrint('cronjobs result: $cronJobsRaw');
+    if (cronJobsRaw == null) return disconnect();
+    final cronJobs = cronJobsRaw
         .split(RegExp(r'[\n?\r]'))
         .where(notCommentOrWhitspace)
-        .map((cronjob) => CronJob.parse(cronjob))
+        .map(CronJob.parse)
         .whereNotNull()
         .toList();
-    for (var c in cronJobs) {
-      debugPrint(c.toString());
-    }
+    cronJobs.map((e) => '&e').forEach(debugPrint);
     emit(CurtainsConnected(cronJobs));
   }
 

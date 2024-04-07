@@ -105,7 +105,7 @@ String daysToSentence(Iterable<Day> days) {
   return longestDayChain(days);
 }
 
-String daysToString(UnmodifiableListView<Day> days) => days.isEmpty
+String daysToString(Iterable<Day> days) => days.isEmpty
     ? ''
     : SplayTreeSet<Day>.from(days,
             (a, b) => Day.values.indexOf(a).compareTo(Day.values.indexOf(b)))

@@ -5,7 +5,7 @@ abstract class ConnectionInfo {
 }
 
 class RestfullConnectionInfo extends ConnectionInfo {
-  const RestfullConnectionInfo(String host, int port) : super(host, port);
+  const RestfullConnectionInfo(super.host, super.port);
 }
 
 class SSHConnectionInfo extends ConnectionInfo {

@@ -13,8 +13,8 @@ class AlarmItem extends StatelessWidget {
   const AlarmItem({
     required this.context,
     required this.alarm,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

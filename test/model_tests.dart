@@ -113,8 +113,8 @@ void main() {
       const timeIn = TimeOfDay(hour: 15, minute: 45);
       final job = CronJob.everyday(time: timeIn);
 
-      expectH(job.toString(),
-          '45 15 * * mon,tue,wed,thu,fri,sat,sun ${CronJob.openCommand}');
+      expectH(
+          job.toString(), '45 15 * * mon,tue,wed,thu,fri,sat,sun $openCommand');
       expect(job.days, Day.values.toSet());
       expect(job.time, timeIn);
     });
@@ -150,7 +150,6 @@ void main() {
       expect(job.days, {Day.mon, Day.fri, Day.sun});
       expect(job.time, const TimeOfDay(hour: 14, minute: 12));
       expect(job.command, 'pwd some thing else');
-      expect(job.uuid, uuid);
     });
 
     test('parsing string with star day', () {

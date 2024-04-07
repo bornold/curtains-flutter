@@ -1,12 +1,12 @@
 part of 'curtains_cubit.dart';
 
 @immutable
-abstract class CurtainsState extends Equatable {
+sealed class CurtainsState extends Equatable {
   @override
   bool get stringify => true;
 }
 
-class CurtainsDisconnected extends CurtainsState {
+final class CurtainsDisconnected extends CurtainsState {
   final Object? error;
 
   CurtainsDisconnected([this.error]);
@@ -15,7 +15,7 @@ class CurtainsDisconnected extends CurtainsState {
   List<Object?> get props => [error];
 }
 
-class CurtainsConnecting extends CurtainsState {
+final class CurtainsConnecting extends CurtainsState {
   @override
   List<Object> get props => [];
 }
@@ -30,6 +30,6 @@ class CurtainsConnected extends CurtainsState {
   List<Object> get props => alarms;
 }
 
-class CurtainsBusy extends CurtainsConnected {
-  CurtainsBusy(List<CronJob> cronjobs) : super(cronjobs);
+final class CurtainsBusy extends CurtainsConnected {
+  CurtainsBusy(super.cronjobs);
 }

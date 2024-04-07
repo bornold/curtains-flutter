@@ -3,21 +3,21 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
+const openCommand = '~/bin/open';
+
 class CronJob implements Comparable<CronJob> {
-  static const openCommand = '~/bin/open';
   final String command;
   final TimeOfDay time;
-  final UnmodifiableListView<Day> days;
-  String get uuid => _uuid;
-  String _uuid;
+  final UnmodifiableSetView<Day> days;
+  final String uuid;
 
   CronJob({
     required this.time,
     required Set<Day> days,
     this.command = openCommand,
     String? uuid,
-  })  : _uuid = uuid ?? const Uuid().v4(),
-        days = UnmodifiableListView<Day>(days),
+  })  : uuid = uuid ?? const Uuid().v4(),
+        days = UnmodifiableSetView<Day>(days),
         assert(time.hour < 24),
         assert(time.minute < 60);
 

@@ -15,7 +15,7 @@ class ConnectionSettings extends StatefulWidget {
       errorSessionDown = 'session is down',
       errorAuth = 'USERAUTH fail';
 
-  const ConnectionSettings({this.error, Key? key}) : super(key: key);
+  const ConnectionSettings({this.error, super.key});
   final Object? error;
   @override
   State createState() => _ConnectionSettingsState();

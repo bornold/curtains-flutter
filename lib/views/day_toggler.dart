@@ -5,10 +5,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class DayToggler extends StatelessWidget {
   const DayToggler({
-    Key? key,
+    super.key,
     required this.d,
     required this.alarm,
-  }) : super(key: key);
+  });
 
   final CronJob alarm;
   final Day d;

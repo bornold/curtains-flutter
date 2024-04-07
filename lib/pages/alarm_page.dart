@@ -11,7 +11,7 @@ import 'package:curtains/views/alarm_item.dart';
 class AlarmPage extends StatefulWidget {
   final List<CronJob> alarms;
 
-  const AlarmPage(this.alarms, {Key? key}) : super(key: key);
+  const AlarmPage(this.alarms, {super.key});
 
   @override
   State<AlarmPage> createState() => _AlarmPageState();
