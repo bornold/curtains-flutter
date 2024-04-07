@@ -17,9 +17,7 @@ class AddAlarmButton extends StatelessWidget {
             final curtains = context.read<CurtainsCubit>();
             TimeOfDay? selectedTime = await showTimePicker(
               initialTime: TimeOfDay.fromDateTime(
-                DateTime.now().add(
-                  const Duration(minutes: 1),
-                ),
+                DateTime.now().add(const Duration(minutes: 1)),
               ),
               context: context,
               builder: (context, child) => child != null
@@ -38,23 +36,19 @@ class AddAlarmButton extends StatelessWidget {
           tooltip: 'add alarm',
           child: const Icon(Icons.alarm_add),
         ),
-        SizedBox(
-          width: 56,
-          height: 56,
-          child: BlocBuilder<CurtainsCubit, CurtainsState>(
-            builder: (context, state) {
-              return state is CurtainsBusy
-                  ? CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(openColor),
-                    )
-                  : FloatingActionButton(
-                      backgroundColor: openColor,
-                      onPressed: () => context.read<CurtainsCubit>().open(),
-                      tooltip: 'open curtains',
-                      child: const Icon(Icons.flare),
-                    );
-            },
-          ),
+        BlocBuilder<CurtainsCubit, CurtainsState>(
+          builder: (context, state) {
+            return state is CurtainsBusy
+                ? CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(openColor),
+                  )
+                : FloatingActionButton(
+                    backgroundColor: openColor,
+                    onPressed: () => context.read<CurtainsCubit>().open(),
+                    tooltip: 'open curtains',
+                    child: const Icon(Icons.flare),
+                  );
+          },
         ),
       ],
     );

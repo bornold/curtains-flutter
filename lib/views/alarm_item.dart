@@ -1,3 +1,4 @@
+import 'package:curtains/theme.dart';
 import 'package:curtains/views/day_toggler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
@@ -18,57 +19,74 @@ class AlarmItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Card(
       child: ExpansionTile(
+        shape: cardShape,
         initiallyExpanded: true,
         expandedAlignment: Alignment.topLeft,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Center(
-              child: TextButton(
-                style: ButtonStyle(
-                  shape: MaterialStateProperty.all(const StadiumBorder()),
-                  padding: MaterialStateProperty.all(
-                      const EdgeInsets.fromLTRB(0, 16, 0, 8)),
-                ),
-                child: Text(alarm.time.format(context),
-                    style: theme.textTheme.headlineSmall),
-                onPressed: () async {
-                  final curtains = context.read<CurtainsCubit>();
-                  TimeOfDay? selectedTime = await showTimePicker(
-                    initialTime: alarm.time,
-                    context: context,
-                    builder: (context, child) => child != null
-                        ? Theme(
-                            data: theme,
-                            child: child,
-                          )
-                        : const SizedBox.shrink(),
-                  );
-                  if (selectedTime != null) {
-                    curtains.update(
-                      CronJob.clone(from: alarm, newTime: selectedTime),
-                    );
-                  }
-                },
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Text(daysToSentence(alarm.days)),
+            TimePickerButton(alarm: alarm),
+            Text(
+              daysToSentence(alarm.days),
+              softWrap: false,
             ),
           ],
         ),
         children: [
           Wrap(
-            children: [
-              ...Day.values.map((d) => DayToggler(d: d, alarm: alarm))
+            children: <Widget>[
+              ...Day.values.map((d) => DayToggler(d: d, alarm: alarm)),
             ],
-          )
+          ),
         ],
       ),
+    );
+  }
+}
+
+class TimePickerButton extends StatelessWidget {
+  const TimePickerButton({
+    super.key,
+    required this.alarm,
+  });
+
+  final CronJob alarm;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return TextButton(
+      style: ButtonStyle(
+        shape: MaterialStateProperty.all(
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+        visualDensity: VisualDensity.compact,
+        padding: MaterialStateProperty.all(const EdgeInsets.all(8)),
+      ),
+      child: Text(
+        alarm.time.format(context),
+        style: theme.textTheme.headlineSmall,
+      ),
+      onPressed: () async {
+        final curtains = context.read<CurtainsCubit>();
+        TimeOfDay? selectedTime = await showTimePicker(
+          initialTime: alarm.time,
+          context: context,
+          builder: (context, child) => child != null
+              ? Theme(
+                  data: theme,
+                  child: child,
+                )
+              : const SizedBox.shrink(),
+        );
+        if (selectedTime != null) {
+          curtains.update(
+            CronJob.clone(from: alarm, newTime: selectedTime),
+          );
+        }
+      },
     );
   }
 }

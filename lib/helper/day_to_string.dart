@@ -8,7 +8,7 @@ String capitalize(String s) {
   return splitted.join();
 }
 
-String daysToSentence(Iterable<Day> days) {
+String daysToSentence(Set<Day> days) {
   String dayToString(Day day) {
     switch (day) {
       case Day.mon:
@@ -101,7 +101,11 @@ String daysToSentence(Iterable<Day> days) {
   }
 
   if (days.isEmpty) return '';
-  if (days.toSet().containsAll(Day.values.toSet())) return 'everyday';
+  if (days.containsAll(Day.values.toSet())) return 'everyday';
+  if (days.containsAll({Day.mon, Day.tue, Day.wed, Day.thu, Day.fri})) {
+    return 'weekdays';
+  }
+  if (days.containsAll({Day.sat, Day.sun})) return 'weekends';
   return longestDayChain(days);
 }
 

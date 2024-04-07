@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 
-const accentColor = Colors.lime;
+const accentColor = Colors.lime, highlightColor = Colors.amber;
 
-final theme = ThemeData.dark().copyWith(
-  highlightColor: Colors.amber,
+final theme = ThemeData.dark(useMaterial3: true).copyWith(
+  highlightColor: highlightColor,
   textSelectionTheme: const TextSelectionThemeData(
     selectionColor: accentColor,
     cursorColor: accentColor,
     selectionHandleColor: accentColor,
   ),
   colorScheme: ThemeData.dark().colorScheme.copyWith(
-        onSurface: accentColor[50],
+        onSurface: Colors.grey[100],
         primary: accentColor,
         secondary: accentColor,
       ),
@@ -21,23 +21,33 @@ final theme = ThemeData.dark().copyWith(
   floatingActionButtonTheme: const FloatingActionButtonThemeData(
     foregroundColor: Colors.black,
     backgroundColor: accentColor,
+    shape: CircleBorder(),
+    iconSize: 42,
+    sizeConstraints: BoxConstraints.tightFor(width: 80, height: 80),
   ),
   cardTheme: const CardTheme(
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.only(
-        topLeft: Radius.circular(16.0),
-        topRight: Radius.circular(16.0),
-        bottomLeft: Radius.circular(4.0),
-        bottomRight: Radius.circular(4.0),
-      ),
-    ),
+    shape: cardShape,
     elevation: 4,
     margin: EdgeInsets.fromLTRB(4, 4, 4, 0),
   ),
+  visualDensity: VisualDensity.adaptivePlatformDensity,
+  timePickerTheme: const TimePickerThemeData(),
   buttonTheme: ButtonThemeData(
     minWidth: 36,
     padding: EdgeInsets.zero,
     colorScheme: ColorScheme.fromSwatch(primarySwatch: accentColor),
   ),
-  iconTheme: const IconThemeData(size: 42.0),
+  listTileTheme: const ListTileThemeData(
+    shape: cardShape,
+  ),
+  iconTheme: const IconThemeData(size: 32.0),
+);
+
+const cardShape = RoundedRectangleBorder(
+  borderRadius: BorderRadius.only(
+    topLeft: Radius.circular(16.0),
+    topRight: Radius.circular(16.0),
+    bottomLeft: Radius.circular(4.0),
+    bottomRight: Radius.circular(4.0),
+  ),
 );
