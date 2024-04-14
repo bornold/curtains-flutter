@@ -1,17 +1,17 @@
 import 'dart:async';
 
+import 'package:curtains/models/alarms.dart';
 import 'package:curtains/views/add_alarm_button.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
 
 import 'package:curtains/datasource/bloc/curtains_cubit.dart';
-import 'package:curtains/models/cronjob.dart';
 import 'package:curtains/views/alarm_item.dart';
 
 class AlarmPage extends StatefulWidget {
-  final List<CronJob> alarms;
+  final CurtainsConnected state;
 
-  const AlarmPage(this.alarms, {super.key});
+  const AlarmPage(this.state, {super.key});
 
   @override
   State<AlarmPage> createState() => _AlarmPageState();
@@ -51,18 +51,18 @@ class _AlarmPageState extends State<AlarmPage> {
           await Future.delayed(const Duration(milliseconds: 100));
         },
         child: ListView.builder(
-          itemCount: widget.alarms.length,
+          itemCount: widget.state.alarms.length,
           itemBuilder: (context, index) {
-            final a = widget.alarms[index];
+            final a = widget.state.alarms[index];
             return Padding(
               padding: const EdgeInsets.all(8.0),
               child: Dismissible(
-                key: Key(a.uuid),
+                key: Key(a.id),
                 resizeDuration: const Duration(milliseconds: 1000),
                 direction: DismissDirection.endToStart,
                 confirmDismiss: confirmDismissCallback(a, context),
                 onDismissed: (dircetion) =>
-                    context.read<CurtainsCubit>().addOrRemoveAlarm(a),
+                    context.read<CurtainsCubit>().removeAlarm(a),
                 background: Container(
                   alignment: AlignmentDirectional.centerStart,
                   child: Icon(
@@ -82,7 +82,7 @@ class _AlarmPageState extends State<AlarmPage> {
   }
 
   ConfirmDismissCallback confirmDismissCallback(
-      CronJob alarm, BuildContext context) {
+      Alarm alarm, BuildContext context) {
     return (direction) {
       final completer = Completer<bool>();
       const duration = Duration(milliseconds: 1200);

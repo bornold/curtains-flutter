@@ -3,10 +3,11 @@ import 'dart:async';
 import 'package:curtains/datasource/connection.dart';
 import 'package:curtains/datasource/repositories/assets.dart';
 import 'package:curtains/datasource/repositories/preferenses.dart';
+import 'package:curtains/models/alarms.dart';
+import 'package:curtains/models/atjob.dart';
 import 'package:curtains/models/connection_info.dart';
 import 'package:curtains/models/cronjob.dart';
 import 'package:curtains/pages/connection_page.dart';
-import 'package:equatable/equatable.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -36,37 +37,33 @@ class CurtainsCubit extends Cubit<CurtainsState> {
 
   Future<void> checkConnection() async {
     final connectionInfo = await getConnectionInfo();
-    if (connectionInfo != null) {
-      connect(connectionInfo);
-    } else {
-      disconnect();
-    }
+    if (connectionInfo == null) return disconnect();
+    await connect(connectionInfo);
   }
 
   Future<SSHConnectionInfo?> getConnectionInfo() async {
     final preferences = Preferences(await SharedPreferences.getInstance());
-    if (preferences.autoconnect) {
-      final ip = preferences.ip;
-      final port = preferences.port;
-      final passphrase = preferences.passphrase;
-      final username = preferences.username;
-      if (ip.isNotEmpty && passphrase.isNotEmpty && username.isNotEmpty) {
-        final sshkey = await Assets(assetBundle).sshkey;
-        return SSHConnectionInfo(
-          user: username,
-          host: ip,
-          port: port,
-          privatekey: sshkey,
-          passphrase: passphrase,
-        );
-      }
-    }
-    return null;
+    if (!preferences.autoconnect) return null;
+
+    final ip = preferences.ip;
+    final port = preferences.port;
+    final passphrase = preferences.passphrase;
+    final username = preferences.username;
+    if (ip.isEmpty || passphrase.isEmpty || username.isEmpty) return null;
+
+    final sshkey = await Assets(assetBundle).sshkey;
+    return SSHConnectionInfo(
+      user: username,
+      host: ip,
+      port: port,
+      privatekey: sshkey,
+      passphrase: passphrase,
+    );
   }
 
   Future<void> disconnect() async {
     try {
-      _connection?.disconnect();
+      await _connection?.disconnect();
     } catch (e) {
       debugPrint(e.toString());
     } finally {
@@ -84,56 +81,124 @@ class CurtainsCubit extends Cubit<CurtainsState> {
   }
 
   Future<void> open() async {
+    final s = state;
+    if (s is! CurtainsConnected) return;
     try {
-      final s = state;
-      if (s is CurtainsConnected) {
-        final alarms = s.alarms.toList();
-        emit(CurtainsBusy(alarms));
-        await executeAndReconnectOnFail(
-            () => _connection?.execute(openCommand));
-        emit(CurtainsConnected(alarms));
-      }
+      emit(CurtainsBusy(s.cronJobs, s.atJobs));
+      await executeAndReconnectOnFail(() => _connection?.execute(openCommand));
+      emit(CurtainsConnected(s.cronJobs, s.atJobs));
     } catch (e) {
       debugPrint(e.toString());
       emit(CurtainsDisconnected(e));
     }
   }
 
-  Future addOrRemoveAlarm(final CronJob cronJob) async {
+  Future addAtJob(TimeOfDay time) async {
+    final now = DateTime.now();
+    DateTime dateTime = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      time.hour,
+      time.minute,
+    );
+    final atJob = AtJob.createNew(dateTime);
+    final command = atJob.toString();
     try {
-      final oldState = state;
-      if (oldState is CurtainsConnected) {
-        final alarms = oldState.alarms.toList();
-        if (alarms.remove(cronJob)) {
-          final alarmEscaped = RegExp.escape(cronJob.toString());
-          final remove = "crontab -l | grep -v '^$alarmEscaped\$' | crontab -";
-          debugPrint(remove);
-          await executeAndReconnectOnFail(() => _connection?.execute(remove));
-        } else {
-          final add = '(crontab -l ; echo "$cronJob") | crontab -';
-          debugPrint(add);
-          await executeAndReconnectOnFail(() => _connection?.execute(add));
-        }
-        return await _refresh();
-      }
+      await executeAndReconnectOnFail(() => _connection?.execute(command));
+      return await _refresh();
     } catch (e) {
       debugPrint(e.toString());
       emit(CurtainsDisconnected(e));
     }
   }
 
-  Future<void> update(final CronJob cronJob) async {
+  Future _addCronJob(CronJob cronJob) async {
     try {
-      final s = state;
-      if (s is CurtainsConnected) {
-        final uuidEscaped = RegExp.escape(cronJob.uuid);
-        final updateCommand =
-            "(crontab -l | grep -v '#$uuidEscaped\$' ; echo \"$cronJob\") | crontab -";
-        debugPrint(updateCommand);
-        await executeAndReconnectOnFail(
-            () => _connection?.execute(updateCommand));
-        return await _refresh();
+      final add = '(crontab -l ; echo "$cronJob") | crontab -';
+      debugPrint(add);
+      await executeAndReconnectOnFail(() => _connection?.execute(add));
+      return await _refresh();
+    } catch (e) {
+      debugPrint(e.toString());
+      emit(CurtainsDisconnected(e));
+    }
+  }
+
+  Future removeAlarm(final Alarm alarm) async {
+    try {
+      if (alarm is CronJob) await _removeCronJob(alarm);
+      if (alarm is AtJob) await _removeAtJob(alarm);
+      await _refresh();
+    } catch (e) {
+      debugPrint(e.toString());
+      emit(CurtainsDisconnected(e));
+    }
+  }
+
+  Future _removeCronJob(CronJob cronJob) async {
+    final alarmEscaped = RegExp.escape(cronJob.toString());
+    final remove = "crontab -l | grep -v '^$alarmEscaped\$' | crontab -";
+    debugPrint(remove);
+    await executeAndReconnectOnFail(() => _connection?.execute(remove));
+  }
+
+  Future _removeAtJob(AtJob at) async {
+    final remove = "atrm ${at.jobNr}";
+    debugPrint(remove);
+    await executeAndReconnectOnFail(() => _connection?.execute(remove));
+  }
+
+  Future<void> updateTime(final Alarm alarm, TimeOfDay time) async {
+    final s = state;
+    if (s is! CurtainsConnected) return;
+    if (alarm is CronJob) {
+      final newCronJob = CronJob.clone(from: alarm, newTime: time);
+      return _updateCronJob(newCronJob);
+    }
+    if (alarm is AtJob) {
+      await _removeAtJob(alarm);
+      await addAtJob(alarm.time);
+    }
+  }
+
+  Future<void> updateDay(Alarm oldAlarm, Day day) async {
+    var days = oldAlarm.days.toSet();
+    if (!days.remove(day)) days.add(day);
+    if (oldAlarm is CronJob) {
+      if (days.isEmpty) {
+        await _removeCronJob(oldAlarm);
+        await addAtJob(oldAlarm.time);
+        await _refresh();
+        return;
       }
+      await _updateCronJob(CronJob.clone(from: oldAlarm, newDays: days));
+      await _refresh();
+      return;
+    }
+    if (oldAlarm is AtJob) {
+      await _removeAtJob(oldAlarm);
+      final cronJob = CronJob(
+        time: oldAlarm.time,
+        days: days,
+      );
+      await _addCronJob(cronJob);
+      await _refresh();
+      return;
+    }
+  }
+
+  Future<void> _updateCronJob(CronJob cronJob) async {
+    final s = state;
+    if (s is! CurtainsConnected) return;
+    try {
+      final uuidEscaped = RegExp.escape(cronJob.id);
+      final updateCommand =
+          "(crontab -l | grep -v '#$uuidEscaped\$' ; echo \"$cronJob\") | crontab -";
+      debugPrint(updateCommand);
+      await executeAndReconnectOnFail(
+          () => _connection?.execute(updateCommand));
+      return await _refresh();
     } catch (e) {
       debugPrint(e.toString());
       emit(CurtainsDisconnected(e));
@@ -149,29 +214,38 @@ class CurtainsCubit extends Cubit<CurtainsState> {
     debugPrint('cronjobs result: $cronJobsRaw');
     if (cronJobsRaw == null) return disconnect();
     final cronJobs = cronJobsRaw
-        .split(RegExp(r'[\n?\r]'))
+        .split(RegExp(r'[\n\r]'))
         .where(notCommentOrWhitspace)
         .map(CronJob.parse)
         .whereNotNull()
         .toList();
-    cronJobs.map((e) => '&e').forEach(debugPrint);
-    emit(CurtainsConnected(cronJobs));
+
+    final String? atJobsRaw =
+        await executeAndReconnectOnFail(() => _connection?.execute("at -l"));
+
+    final atJobs = atJobsRaw
+            ?.split(RegExp(r'[\n\r]'))
+            .map(AtJob.parse)
+            .whereNotNull()
+            .toList() ??
+        <AtJob>[];
+    emit(CurtainsConnected(cronJobs, atJobs));
   }
 
-  Future<T> executeAndReconnectOnFail<T>(FutureOr<T> Function() f,
-      {int depth = 0}) async {
+  Future<T> executeAndReconnectOnFail<T>(
+    FutureOr<T> Function() f, {
+    int depth = 0,
+  }) async {
     try {
       return await f();
     } on PlatformException catch (pe) {
-      if (pe.message == ConnectionSettings.errorSessionDown && depth < 3) {
-        debugPrint("session is down, trying to reconnect");
-        _connection?.disconnect();
-        await _connection?.connect().timeout(const Duration(seconds: 4));
-        debugPrint("reconnect connect successfull, executing statment again");
-        return executeAndReconnectOnFail(f, depth: depth + 1);
-      } else {
-        rethrow;
-      }
+      if (depth > 3) rethrow;
+      if (pe.message == ConnectionSettings.errorSessionDown) rethrow;
+      debugPrint("session is down, trying to reconnect");
+      await _connection?.disconnect();
+      await _connection?.connect().timeout(const Duration(seconds: 4));
+      debugPrint("reconnect connect successfull, executing statment again");
+      return executeAndReconnectOnFail(f, depth: depth + 1);
     }
   }
 }

@@ -1,5 +1,6 @@
 library model_tests;
 
+import 'package:curtains/models/alarms.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:uuid/uuid.dart';
@@ -52,7 +53,7 @@ void main() {
             () => CronJob(
                 command: 'ls',
                 time: const TimeOfDay(hour: 23, minute: 60),
-                days: <Day>{Day.fri}),
+                days: const <Day>{Day.fri}),
             throwsAssertionError));
     test(
         'throws when hour is over 23',
@@ -60,7 +61,7 @@ void main() {
             () => CronJob(
                 command: 'ls',
                 time: const TimeOfDay(hour: 24, minute: 0),
-                days: <Day>{Day.fri}),
+                days: const <Day>{Day.fri}),
             throwsAssertionError));
 
     test('sets correct day', () {
@@ -161,7 +162,7 @@ void main() {
       expect(job.days, <dynamic>{});
       expect(job.time, const TimeOfDay(hour: 14, minute: 12));
       expect(job.command, 'pwd some thing else');
-      expect(job.uuid, uuid);
+      expect(job.id, uuid);
     });
 
     test('parsing string without uuid ', () {

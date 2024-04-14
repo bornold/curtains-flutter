@@ -1,3 +1,4 @@
+import 'package:curtains/models/alarms.dart';
 import 'package:curtains/theme.dart';
 import 'package:curtains/views/day_toggler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -5,12 +6,11 @@ import 'package:flutter/material.dart';
 
 import 'package:curtains/datasource/bloc/curtains_cubit.dart';
 import 'package:curtains/helper/day_to_string.dart';
-import 'package:curtains/models/cronjob.dart';
 
 class AlarmItem extends StatelessWidget {
   final BuildContext context;
 
-  final CronJob alarm;
+  final Alarm alarm;
   const AlarmItem({
     required this.context,
     required this.alarm,
@@ -52,10 +52,11 @@ class TimePickerButton extends StatelessWidget {
     required this.alarm,
   });
 
-  final CronJob alarm;
+  final Alarm alarm;
 
   @override
   Widget build(BuildContext context) {
+    final alarm = this.alarm;
     final theme = Theme.of(context);
     return TextButton(
       style: ButtonStyle(
@@ -64,10 +65,6 @@ class TimePickerButton extends StatelessWidget {
         ),
         visualDensity: VisualDensity.compact,
         padding: MaterialStateProperty.all(const EdgeInsets.all(8)),
-      ),
-      child: Text(
-        alarm.time.format(context),
-        style: theme.textTheme.headlineSmall,
       ),
       onPressed: () async {
         final curtains = context.read<CurtainsCubit>();
@@ -82,11 +79,13 @@ class TimePickerButton extends StatelessWidget {
               : const SizedBox.shrink(),
         );
         if (selectedTime != null) {
-          curtains.update(
-            CronJob.clone(from: alarm, newTime: selectedTime),
-          );
+          curtains.updateTime(alarm, selectedTime);
         }
       },
+      child: Text(
+        alarm.time.format(context),
+        style: theme.textTheme.headlineSmall,
+      ),
     );
   }
 }

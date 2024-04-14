@@ -1,5 +1,5 @@
 import 'package:curtains/datasource/bloc/curtains_cubit.dart';
-import 'package:curtains/models/cronjob.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -28,9 +28,7 @@ class AddAlarmButton extends StatelessWidget {
                   : const SizedBox.shrink(),
             );
             if (selectedTime != null) {
-              curtains.addOrRemoveAlarm(
-                CronJob.everyday(time: selectedTime),
-              );
+              curtains.addAtJob(selectedTime);
             }
           },
           tooltip: 'add alarm',

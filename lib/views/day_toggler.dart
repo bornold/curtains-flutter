@@ -1,5 +1,6 @@
 import 'package:curtains/datasource/bloc/curtains_cubit.dart';
-import 'package:curtains/models/cronjob.dart';
+import 'package:curtains/models/alarms.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -10,11 +11,12 @@ class DayToggler extends StatelessWidget {
     required this.alarm,
   });
 
-  final CronJob alarm;
+  final Alarm alarm;
   final Day d;
 
   @override
   Widget build(BuildContext context) {
+    final alarm = this.alarm;
     final theme = Theme.of(context);
     final activeByttonStyle = ButtonStyle(
       visualDensity: const VisualDensity(horizontal: -4.0, vertical: 0.0),
@@ -28,14 +30,8 @@ class DayToggler extends StatelessWidget {
     );
     return TextButton(
       style: alarm.days.contains(d) ? activeByttonStyle : inactiveButtonStyle,
+      onPressed: () => context.read<CurtainsCubit>().updateDay(alarm, d),
       child: Text(d.name),
-      onPressed: () {
-        var oldDays = alarm.days.toSet();
-        if (!oldDays.remove(d)) oldDays.add(d);
-        context
-            .read<CurtainsCubit>()
-            .update(CronJob.clone(from: alarm, newDays: oldDays));
-      },
     );
   }
 }

@@ -1,35 +1,28 @@
 part of 'curtains_cubit.dart';
 
 @immutable
-sealed class CurtainsState extends Equatable {
-  @override
-  bool get stringify => true;
-}
+sealed class CurtainsState {}
 
 final class CurtainsDisconnected extends CurtainsState {
   final Object? error;
 
   CurtainsDisconnected([this.error]);
-
-  @override
-  List<Object?> get props => [error];
 }
 
-final class CurtainsConnecting extends CurtainsState {
-  @override
-  List<Object> get props => [];
-}
+final class CurtainsConnecting extends CurtainsState {}
 
 class CurtainsConnected extends CurtainsState {
-  final UnmodifiableListView<CronJob> alarms;
-  CurtainsConnected(List<CronJob> cronjobs)
-      : alarms =
-            UnmodifiableListView(cronjobs..sort((a1, a2) => a2.compareTo(a1)));
+  final UnmodifiableListView<CronJob> cronJobs;
+  final UnmodifiableListView<AtJob> atJobs;
+  CurtainsConnected(List<CronJob> cronjobs, List<AtJob> atjobs)
+      : cronJobs =
+            UnmodifiableListView(cronjobs..sort((a1, a2) => a2.compareTo(a1))),
+        atJobs =
+            UnmodifiableListView(atjobs..sort((a1, a2) => a2.compareTo(a1)));
 
-  @override
-  List<Object> get props => alarms;
+  List<Alarm> get alarms => [...cronJobs, ...atJobs];
 }
 
 final class CurtainsBusy extends CurtainsConnected {
-  CurtainsBusy(super.cronjobs);
+  CurtainsBusy(super.cronjobs, super.atjobs);
 }

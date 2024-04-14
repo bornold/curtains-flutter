@@ -38,7 +38,7 @@ class MainPage extends StatelessWidget {
     if (state is CurtainsDisconnected) {
       return ConnectionSettings(error: state.error);
     } else if (state is CurtainsConnected) {
-      return AlarmPage(state.alarms);
+      return AlarmPage(state);
     }
     return Container(
       decoration:

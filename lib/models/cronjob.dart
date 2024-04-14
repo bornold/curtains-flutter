@@ -1,3 +1,5 @@
+import 'package:curtains/models/alarms.dart';
+
 import '../helper/day_to_string.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
@@ -5,21 +7,17 @@ import 'package:uuid/uuid.dart';
 
 const openCommand = '~/bin/open';
 
-class CronJob implements Comparable<CronJob> {
+class CronJob extends Alarm {
   final String command;
-  final TimeOfDay time;
-  final UnmodifiableSetView<Day> days;
-  final String uuid;
 
   CronJob({
-    required this.time,
-    required Set<Day> days,
+    required super.time,
+    required super.days,
     this.command = openCommand,
-    String? uuid,
-  })  : uuid = uuid ?? const Uuid().v4(),
-        days = UnmodifiableSetView<Day>(days),
-        assert(time.hour < 24),
-        assert(time.minute < 60);
+    String? id,
+  })  : assert(time.hour < 24),
+        assert(time.minute < 60),
+        super(id: id ?? const Uuid().v4());
 
   CronJob.everyday({required TimeOfDay time})
       : this(time: time, days: Day.values.toSet());
@@ -33,7 +31,7 @@ class CronJob implements Comparable<CronJob> {
               TimeOfDay(hour: from.time.hour, minute: from.time.minute),
           days: newDays ?? from.days.toSet(),
           command: newCommand ?? from.command,
-          uuid: from.uuid,
+          id: from.id,
         );
 
   static CronJob? parse(String raw) {
@@ -57,28 +55,15 @@ class CronJob implements Comparable<CronJob> {
 
     final command = splitted.join(' ');
     final time = TimeOfDay(hour: hour, minute: min);
-    return CronJob(days: days, time: time, command: command, uuid: uuid);
+    return CronJob(days: days, time: time, command: command, id: uuid);
   }
 
   @override
   String toString() => raw;
   String get raw =>
-      "${time.minute} ${time.hour} * * ${days.isEmpty ? '*' : daysToString(days)} $command #$uuid"
+      "${time.minute} ${time.hour} * * ${days.isEmpty ? '*' : daysToString(days)} $command #$id"
           .trim();
 
   @override
-  int compareTo(CronJob other) {
-    int hourComp = other.time.hour.compareTo(time.hour);
-    return hourComp == 0 ? other.time.minute.compareTo(time.minute) : hourComp;
-  }
-}
-
-enum Day {
-  mon,
-  tue,
-  wed,
-  thu,
-  fri,
-  sat,
-  sun,
+  List<Object?> get props => [command, time, days];
 }

@@ -1,5 +1,6 @@
 library days_string_tests;
 
+import 'package:curtains/models/alarms.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:curtains/helper/day_to_string.dart';
