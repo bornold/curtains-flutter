@@ -7,10 +7,8 @@ import 'package:curtains/models/alarms.dart';
 import 'package:curtains/models/atjob.dart';
 import 'package:curtains/models/connection_info.dart';
 import 'package:curtains/models/cronjob.dart';
-import 'package:curtains/pages/connection_page.dart';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,7 +18,7 @@ part 'curtains_state.dart';
 class CurtainsCubit extends Cubit<CurtainsState> {
   CurtainsCubit({required this.assetBundle}) : super(CurtainsConnecting());
 
-  Connection? _connection;
+  SSHConnection? _connection;
   final AssetBundle assetBundle;
 
   Future<void> connect(final SSHConnectionInfo connectionInfo) async {
@@ -84,9 +82,9 @@ class CurtainsCubit extends Cubit<CurtainsState> {
     final s = state;
     if (s is! CurtainsConnected) return;
     try {
-      emit(CurtainsBusy(s.cronJobs, s.atJobs));
+      emit(s.busy);
       await executeAndReconnectOnFail(() => _connection?.execute(openCommand));
-      emit(CurtainsConnected(s.cronJobs, s.atJobs));
+      emit(s);
     } catch (e) {
       debugPrint(e.toString());
       emit(CurtainsDisconnected(e));
@@ -236,14 +234,18 @@ class CurtainsCubit extends Cubit<CurtainsState> {
     int depth = 0,
   }) async {
     try {
+      debugPrint("executing statement $f");
       return await f();
-    } on PlatformException catch (pe) {
+    } catch (e) {
+      debugPrint(
+        'error executing statement'
+        ', trying to reconnect, '
+        ', attempt $depth'
+        ', error: $e',
+      );
       if (depth > 3) rethrow;
-      if (pe.message == ConnectionSettings.errorSessionDown) rethrow;
-      debugPrint("session is down, trying to reconnect");
       await _connection?.disconnect();
       await _connection?.connect().timeout(const Duration(seconds: 4));
-      debugPrint("reconnect connect successfull, executing statment again");
       return executeAndReconnectOnFail(f, depth: depth + 1);
     }
   }

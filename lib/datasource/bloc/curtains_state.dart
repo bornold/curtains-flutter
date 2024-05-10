@@ -20,6 +20,11 @@ class CurtainsConnected extends CurtainsState {
         atJobs =
             UnmodifiableListView(atjobs..sort((a1, a2) => a2.compareTo(a1)));
 
+  CurtainsBusy get busy => CurtainsBusy(
+        cronJobs.toList(),
+        atJobs.toList(),
+      );
+
   List<Alarm> get alarms => [...cronJobs, ...atJobs];
 }
 

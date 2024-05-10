@@ -5,42 +5,45 @@ import 'package:curtains/models/connection_info.dart';
 import 'package:dartssh2/dartssh2.dart';
 import 'package:flutter/foundation.dart';
 
-abstract class Connection {
-  Future<String?> execute(String cmd);
-  Future<void> connect();
-  FutureOr<void> disconnect();
-}
-
-class SSHConnection implements Connection {
+class SSHConnection {
   final SSHConnectionInfo connectionInfo;
   SSHConnection(this.connectionInfo);
 
   late SSHClient _sshClient;
 
-  @override
   Future<void> connect() async {
-    _sshClient = SSHClient(
-      await SSHSocket.connect(connectionInfo.host, connectionInfo.port),
-      username: connectionInfo.user,
-      identities: [
-        ...SSHKeyPair.fromPem(
-          connectionInfo.privatekey,
-          connectionInfo.passphrase,
-        )
-      ],
-      printDebug: debugPrint,
-      printTrace: debugPrint,
-    );
-    await _sshClient.authenticated;
+    try {
+      debugPrint('Connecting');
+      _sshClient = SSHClient(
+        await SSHSocket.connect(connectionInfo.host, connectionInfo.port),
+        username: connectionInfo.user,
+        identities: [
+          ...SSHKeyPair.fromPem(
+            connectionInfo.privatekey,
+            connectionInfo.passphrase,
+          )
+        ],
+        printDebug: debugPrint,
+        printTrace: debugPrint,
+      );
+      await _sshClient.authenticated;
+    } catch (e) {
+      debugPrint('Error connecting');
+      debugPrint(e.toString());
+    }
   }
 
-  @override
   Future<void> disconnect() async {
-    _sshClient.close();
-    await _sshClient.done;
+    try {
+      debugPrint('Disconnecting');
+      _sshClient.close();
+      await _sshClient.done;
+    } catch (e) {
+      debugPrint('Error disconnecting');
+      debugPrint(e.toString());
+    }
   }
 
-  @override
   Future<String?> execute(String cmd) async =>
       utf8.decode(await _sshClient.run(cmd));
 }
