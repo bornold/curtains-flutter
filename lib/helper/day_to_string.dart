@@ -12,7 +12,7 @@ const weekdays = {Day.mon, Day.tue, Day.wed, Day.thu, Day.fri};
 const weekends = {Day.sat, Day.sun};
 
 extension on Day {
-  String get name => capitalize(toString().split('.').last);
+  String get name => toString().split('.').last;
 }
 
 String daysToSentence(Set<Day> days) {

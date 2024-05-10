@@ -137,8 +137,7 @@ class CurtainsCubit extends Cubit<CurtainsState> {
   }
 
   Future _removeCronJob(CronJob cronJob) async {
-    final alarmEscaped = RegExp.escape(cronJob.toString());
-    final remove = "crontab -l | grep -v '^$alarmEscaped\$' | crontab -";
+    final remove = "crontab -l | grep -v '${cronJob.id}' | crontab -";
     debugPrint(remove);
     await executeAndReconnectOnFail(() => _connection?.execute(remove));
   }
