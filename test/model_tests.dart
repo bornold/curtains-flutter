@@ -1,4 +1,4 @@
-library model_tests;
+library;
 
 import 'package:curtains/models/alarms.dart';
 import 'package:flutter/material.dart';

@@ -17,12 +17,10 @@ class SSHConnection {
       _sshClient = SSHClient(
         await SSHSocket.connect(connectionInfo.host, connectionInfo.port),
         username: connectionInfo.user,
-        identities: [
-          ...SSHKeyPair.fromPem(
-            connectionInfo.privatekey,
-            connectionInfo.passphrase,
-          )
-        ],
+        identities: SSHKeyPair.fromPem(
+          connectionInfo.privatekey,
+          connectionInfo.passphrase,
+        ),
         printDebug: debugPrint,
         printTrace: debugPrint,
       );
