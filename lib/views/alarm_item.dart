@@ -60,11 +60,11 @@ class TimePickerButton extends StatelessWidget {
     final theme = Theme.of(context);
     return TextButton(
       style: ButtonStyle(
-        shape: MaterialStateProperty.all(
+        shape: WidgetStatePropertyAll(
           RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
         visualDensity: VisualDensity.compact,
-        padding: MaterialStateProperty.all(const EdgeInsets.all(8)),
+        padding: const WidgetStatePropertyAll(EdgeInsets.all(8)),
       ),
       onPressed: () async {
         final curtains = context.read<CurtainsCubit>();

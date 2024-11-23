@@ -20,13 +20,13 @@ class DayToggler extends StatelessWidget {
     final theme = Theme.of(context);
     final activeByttonStyle = ButtonStyle(
       visualDensity: const VisualDensity(horizontal: -4.0, vertical: 0.0),
-      shape: MaterialStateProperty.all(const CircleBorder()),
-      foregroundColor: MaterialStateProperty.all(theme.primaryColorDark),
-      backgroundColor: MaterialStateProperty.all(theme.colorScheme.primary),
+      shape: const WidgetStatePropertyAll(CircleBorder()),
+      foregroundColor: WidgetStatePropertyAll(theme.primaryColorDark),
+      backgroundColor: WidgetStatePropertyAll(theme.colorScheme.primary),
     );
     final inactiveButtonStyle = activeByttonStyle.copyWith(
-      foregroundColor: MaterialStateProperty.all(theme.primaryColorLight),
-      backgroundColor: MaterialStateProperty.all(theme.colorScheme.surface),
+      foregroundColor: WidgetStatePropertyAll(theme.primaryColorLight),
+      backgroundColor: WidgetStatePropertyAll(theme.colorScheme.surface),
     );
     return TextButton(
       style: alarm.days.contains(d) ? activeByttonStyle : inactiveButtonStyle,
