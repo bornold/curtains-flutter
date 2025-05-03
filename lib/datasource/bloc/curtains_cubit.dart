@@ -214,7 +214,7 @@ class CurtainsCubit extends Cubit<CurtainsState> {
         .split(RegExp(r'[\n\r]'))
         .where(notCommentOrWhitspace)
         .map(CronJob.parse)
-        .whereNotNull()
+        .nonNulls
         .toList();
 
     final String? atJobsRaw =
@@ -223,7 +223,7 @@ class CurtainsCubit extends Cubit<CurtainsState> {
     final atJobs = atJobsRaw
             ?.split(RegExp(r'[\n\r]'))
             .map(AtJob.parse)
-            .whereNotNull()
+            .nonNulls
             .toList() ??
         <AtJob>[];
     emit(CurtainsConnected(cronJobs, atJobs));

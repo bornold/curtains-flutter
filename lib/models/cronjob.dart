@@ -51,7 +51,7 @@ class CronJob extends Alarm {
     final dayPart = splitted.removeAt(0);
     final days = dayPart == '*'
         ? Set<Day>.identity()
-        : dayPart.split(',').map(parseDay).whereNotNull().toSet();
+        : dayPart.split(',').map(parseDay).nonNulls.toSet();
 
     final command = splitted.join(' ');
     final time = TimeOfDay(hour: hour, minute: min);
